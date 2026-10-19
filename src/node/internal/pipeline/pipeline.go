@@ -362,7 +362,10 @@ func (p *Pipeline) serve(w http.ResponseWriter, r *http.Request, start time.Time
 	p.proxy.ServeHTTP(rw, r)
 
 	// 3.5 源站故障 → stale 兜底（stale-if-error：过期缓存救急并标记 X-Cache: STALE）
-	if recorder != nil && recorder.status >= 500 {
+	// 注意：recorder 已把源站 5xx 响应头写出（pageWriter→countWriter 直通），此处不能再改写状态码；
+	// 仅在缓存有可用条目时以 200 重发会触发 superfluous WriteHeader。改为：头未写出时才走 stale 分支
+	// —— 通过检查 pageWriter 状态实现（did 存在于 countWriter，recorder 直通意味着头已发出）。
+	if recorder != nil && recorder.status >= 500 && !headerSent(rw) {
 		if stale, ok := cacheLayer.LookupStale(r); ok {
 			w.Header().Set("X-Cache", "STALE")
 			w.Header().Set("Content-Type", stale.ContentType)
@@ -545,6 +548,7 @@ type responseRecorder struct {
 	mut         sync.Mutex
 	buf         []byte
 	wroteHeader bool
+	discard     bool // true = 只捕获不透传（singleflight leader 用，避免响应写两遍）
 }
 
 func (rw *responseRecorder) bodySnapshot() []byte {
@@ -560,6 +564,9 @@ func (rw *responseRecorder) WriteHeader(code int) {
 		rw.status = code
 		rw.wroteHeader = true
 	}
+	if rw.discard {
+		return // 只捕获：响应由 doFlight 统一 write() 写出（leader 二次写出会重复响应头/体）
+	}
 	rw.ResponseWriter.WriteHeader(code)
 }
 
@@ -567,6 +574,9 @@ func (rw *responseRecorder) Write(b []byte) (int, error) {
 	rw.mut.Lock()
 	rw.buf = append(rw.buf, b...)
 	rw.mut.Unlock()
+	if rw.discard {
+		return len(b), nil
+	}
 	return rw.ResponseWriter.Write(b)
 }
 
@@ -574,9 +584,10 @@ func (rw *responseRecorder) Write(b []byte) (int, error) {
 // 在 WriteHeader 拦截（头未发出），替换后丢弃源站错误页体；正常响应零开销透传。
 type pageWriter struct {
 	http.ResponseWriter
-	pages    *pb.CustomPagesConfig
-	status   int
-	replaced bool
+	pages       *pb.CustomPagesConfig
+	status      int
+	replaced    bool
+	headerSent  bool // WriteHeader 已调用过（含替换路径），上层不得再改写状态
 }
 
 func (pw *pageWriter) WriteHeader(code int) {
@@ -584,6 +595,7 @@ func (pw *pageWriter) WriteHeader(code int) {
 		return
 	}
 	pw.status = code
+	pw.headerSent = true
 	page := ""
 	if code == 404 && pw.pages != nil && pw.pages.NotFound != "" {
 		page = pw.pages.NotFound
@@ -612,6 +624,14 @@ func (pw *pageWriter) Write(b []byte) (int, error) {
 		pw.WriteHeader(200)
 	}
 	return pw.ResponseWriter.Write(b)
+}
+
+// headerSent 判断响应头是否已写出（pageWriter 包装链），用于 stale 兜底分支防止二次 WriteHeader。
+func headerSent(w http.ResponseWriter) bool {
+	if pw, ok := w.(*pageWriter); ok {
+		return pw.headerSent
+	}
+	return false
 }
 
 func (pw *pageWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {

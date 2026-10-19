@@ -71,10 +71,12 @@ func (p *Pipeline) serveWithFlight(w http.ResponseWriter, r *http.Request, key s
 	write := func(code int, ct string, body []byte) {
 		writeCompressed(w, r, code, ct, body)
 	}
-	// 回源执行体：捕获响应（供缓存 Store 与等待者共享）
+	// 回源执行体：捕获响应（供缓存 Store 与等待者共享）。
+	// discard=true：只捕获不透传 —— leader 的响应由下方 write() 统一写出，
+	// 否则 recorder 直通 + write() 重放会把响应头/体写两遍（superfluous WriteHeader + 重复 body）。
 	fn := func() (int, string, []byte) {
 		w.Header().Set("X-Cache", "MISS")
-		recorder := &responseRecorder{ResponseWriter: w, status: 200}
+		recorder := &responseRecorder{ResponseWriter: w, status: 200, discard: true}
 		p.proxy.ServeHTTP(recorder, r)
 		code := recorder.status
 		ct := recorder.Header().Get("Content-Type")
