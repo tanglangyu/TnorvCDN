@@ -796,7 +796,7 @@ public static class UserCdnExtraEndpoints
         });
 
         // 刷新缓存（仅自己的域名）
-        grp.MapPost("/servers/cache/purge", async (PurgeUserRequest req, CdnDbContext db, IConfiguration cfg, PurgeRegistry purges) =>
+        grp.MapPost("/servers/cache/purge", async (PurgeUserRequest req, CdnDbContext db, IConfiguration cfg, PurgeRegistry purges, ConfigPublishQueue publishQueue) =>
         {
             var uid = await UserIdAsync(cfg);
             if (uid == null) return Unauthorized();
@@ -809,7 +809,13 @@ public static class UserCdnExtraEndpoints
                 if (!myDomains.Any(ds => ds.Contains(req.Host))) return Results.Json(new { code = 403, message = "无权刷新该域名" });
             }
             var clusterIds = await db.Nodes.Select(n => n.ClusterId).Distinct().ToListAsync();
-            var queued = clusterIds.Select(cid => purges.Enqueue(cid, req.MatchType, req.Host ?? "", req.Value ?? "")).Count();
+            var queued = 0;
+            foreach (var cid in clusterIds)
+            {
+                purges.Enqueue(cid, req.MatchType, req.Host ?? "", req.Value ?? "");
+                publishQueue.Enqueue(cid); // 指令随配置快照下发；不 bump 版本节点拉取时早退收不到刷新
+                queued++;
+            }
             return Results.Json(new { code = 200, message = "刷新指令已下发", data = new { queued } });
         });
     }

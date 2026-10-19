@@ -146,8 +146,9 @@ func (c *CacheLayer) Store(r *http.Request, status int, contentType string, body
 		Body:        body,
 		StoredAt:    time.Now(),
 		TTL:         time.Duration(rule.TtlSeconds) * time.Second,
-		Host:        strings.ToLower(r.URL.Host),
-		Path:        r.URL.Path,
+		// r.URL.Host 已被反代 Director 改写为源站地址 —— 缓存归属必须用用户访问域名 r.Host
+		Host: requestHost(r),
+		Path: r.URL.Path,
 	}
 	if entry.TTL <= 0 {
 		entry.TTL = time.Hour
@@ -309,6 +310,16 @@ func PurgeCache(matchType, host, value string) int {
 	}
 	cacheStore.mu.Unlock()
 	return n
+}
+
+// requestHost 返回用户访问的域名（小写、去端口）。缓存条目与刷新定位都用它，
+// 而非 r.URL.Host —— 后者在回源过程中已被反代 Director 改写为源站地址。
+func requestHost(r *http.Request) string {
+	host := r.Host
+	if i := strings.Index(host, ":"); i >= 0 {
+		host = host[:i]
+	}
+	return strings.ToLower(host)
 }
 
 func purgeHit(e *cacheEntry, m purgeMatch) bool {

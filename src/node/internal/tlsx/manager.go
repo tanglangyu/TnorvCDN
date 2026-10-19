@@ -214,7 +214,8 @@ func (tm *Manager) SyncFromConfig(cfg *pb.NodeConfig) {
 		backupEabKid = cfg.Acme.EabKid
 		backupEabHmac = cfg.Acme.EabHmacKey
 	}
-	if len(domains) == 0 {
+	if len(domains) == 0 && len(tm.certs) == 0 {
+		// 无 ACME 托管域名且无手动证书 → 关闭 TLS；仅有手动证书的站点也需开启 443
 		tm.enabled = false
 		return
 	}
@@ -654,12 +655,27 @@ func hasWildcard(d string) bool {
 func (tm *Manager) TLSConfig() *tls.Config {
 	tm.mu.RLock()
 	defer tm.mu.RUnlock()
-	if !tm.enabled || tm.m == nil {
+	if !tm.enabled {
 		return nil
 	}
+	// 仅手动证书（无 ACME 域名）：构建基础 TLS 配置，SNI 走手动证书表
+	if tm.m == nil {
+		if len(tm.certs) == 0 {
+			return nil
+		}
+		cfg := &tls.Config{MinVersion: tls.VersionTLS12}
+		cfg.GetCertificate = tm.getCertificate
+		cfg.NextProtos = append(cfg.NextProtos, "h2", "http/1.1")
+		return cfg
+	}
 	cfg := tm.m.TLSConfig()
-	cfg.GetCertificate = func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-		// 优先手动证书
+	cfg.GetCertificate = tm.getCertificate
+	cfg.NextProtos = append(cfg.NextProtos, "h2", "http/1.1")
+	return cfg
+}
+
+func (tm *Manager) getCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	{
 		tm.mu.RLock()
 		cert, ok := tm.certs[hello.ServerName]
 		tm.mu.RUnlock()
@@ -687,8 +703,6 @@ func (tm *Manager) TLSConfig() *tls.Config {
 		}
 		return nil, fmt.Errorf("no certificate for %s", hello.ServerName)
 	}
-	cfg.NextProtos = append(cfg.NextProtos, "h2", "http/1.1")
-	return cfg
 }
 
 // ACMEHandler 返回 ACME HTTP-01 挑战处理器（挂在 80 端口最前面）。
