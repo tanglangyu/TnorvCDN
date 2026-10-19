@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace TnorvCdn.Api.Services.Dns;
 
 /// <summary>
-/// 聚合DNS管理系统 API 实现（聚合DNS管理系统 API（showdoc 协议））。
+/// 聚合DNS管理系统 API 实现（聚合DNS管理系统 API（））。
 /// 要点（文档+实测验证）：form-urlencoded；sign=md5(uid+timestamp+key) 小写；
 /// 成功 {"code":0}；记录参数名 recordid（不是 id）；add 必须带 line（默认 "default"）。
 /// </summary>
@@ -64,7 +64,7 @@ public class AggregatedDnsProvider : IDnsProvider
                 _logger.LogInformation("[DNS-aggregated] 记录已更新 {Host} -> {Value}", spec.Host, spec.Value);
                 return existingId;
             }
-            // 聚合DNS update 唯一性校验会把"更新为自身当前值"也判为 already exists —— 值已一致视为成功
+            // update 幂等处理。
             if (body.Contains("already exists"))
             {
                 var sameValue = await FindRecordValueAsync(domainId, spec);

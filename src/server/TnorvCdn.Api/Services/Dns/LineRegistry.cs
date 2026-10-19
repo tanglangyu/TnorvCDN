@@ -29,7 +29,7 @@ public static class LineRegistry
         ("福建","福建"), ("河北","河北"), ("陕西","陕西"), ("安徽","安徽"), ("辽宁","辽宁"),
     };
 
-    /// <summary>统一名称 → 聚合DNS line 参数（showdoc 聚合接口沿用它自有的 line 值，直接透传统一名）。</summary>
+    /// <summary>统一名称 → 聚合DNS line 参数（直接透传统一名）。</summary>
     public static string ForAggregated(string line) => string.IsNullOrWhiteSpace(line) ? "default" : line;
 
     /// <summary>统一名称 → DNSPod RecordLine。</summary>
