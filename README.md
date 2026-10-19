@@ -24,7 +24,6 @@ src/
   web/RapidDev.AdminConsole/   管理员控制台（Vue 3 + Element Plus + Vite）
   web/RapidDev.UserConsole/    用户控制台（Vue 3 + Element Plus + Vite）
 proto/tnorv.proto          主控↔节点协议定义
-docs/                      设计文档与视觉规范
 ```
 
 ## 快速开始
