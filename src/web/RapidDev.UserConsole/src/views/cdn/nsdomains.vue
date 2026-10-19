@@ -31,7 +31,8 @@ const loadData = async () => {
   }
   if (groupFilter.value) params.group = groupFilter.value
   const r = await cdnApi.get('/user/ns/domains', params) as any
-  const d = r?.data
+  // request() 已拆包一次：返回值即 ApiResult.data = { total, page, pageSize, items }
+  const d = r && 'total' in r ? r : r?.data
   if (d && !Array.isArray(d) && 'total' in d) {
     pager.value.total = d.total
     rows.value = d.items || []

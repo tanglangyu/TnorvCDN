@@ -804,8 +804,9 @@ public static class UserCdnExtraEndpoints
                 return Results.Json(new { code = 400, message = "matchType 无效" });
             if (req.MatchType != "all" && !string.IsNullOrEmpty(req.Host))
             {
-                var owns = await db.Servers.AnyAsync(s => s.UserId == uid && s.Domains.Contains(req.Host));
-                if (!owns) return Results.Json(new { code = 403, message = "无权刷新该域名" });
+                // Domains 为值转换的集合，EF 无法翻译 Contains —— 取到客户端再判断
+                var myDomains = await db.Servers.Where(s => s.UserId == uid).Select(s => s.Domains).ToListAsync();
+                if (!myDomains.Any(ds => ds.Contains(req.Host))) return Results.Json(new { code = 403, message = "无权刷新该域名" });
             }
             var clusterIds = await db.Nodes.Select(n => n.ClusterId).Distinct().ToListAsync();
             var queued = clusterIds.Select(cid => purges.Enqueue(cid, req.MatchType, req.Host ?? "", req.Value ?? "")).Count();
