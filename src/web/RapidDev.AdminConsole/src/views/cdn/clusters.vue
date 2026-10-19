@@ -334,7 +334,7 @@ function rowCommand(cmd: string, row: any) {
 
             <el-tab-pane label="默认配置套件" name="defaults">
               <el-alert type="info" :closable="false" class="mb-3"
-                title="站点未配置的子块由集群默认兜底下发（站点级优先）。通用设计
+                title="站点未配置的子块由集群默认兜底下发（站点级优先）" />
               <h5 class="mb-2">默认缓存</h5>
               <el-form label-width="150px" size="small">
                 <el-form-item label="启用缓存">

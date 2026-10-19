@@ -165,7 +165,7 @@ const doImport = async () => {
         </el-card>
 
         <el-card class="mt-3">
-          <template #header><b>IP 库</b><span class="text-muted ms-2 small">访客归属地解析通用设计</span></template>
+          <template #header><b>IP 库</b><span class="text-muted ms-2 small">访客归属地解析（ip2region）</span></template>
           <div v-loading="geoLoading">
             <el-descriptions v-if="geoStatus" :column="3" border size="small">
               <el-descriptions-item label="供应商">{{ geoStatus.provider }}</el-descriptions-item>
@@ -203,7 +203,7 @@ const doImport = async () => {
         </el-card>
 
         <el-card class="mt-3">
-          <template #header><b>数据迁移</b><span class="text-muted ms-2 small">站点/集群/套餐配置 JSON 导出与导入通用设计</span></template>
+          <template #header><b>数据迁移</b><span class="text-muted ms-2 small">站点/集群/套餐配置 JSON 导出与导入</span></template>
           <div class="d-flex gap-2 align-items-center">
             <el-button size="small" @click="doExport">导出配置 JSON</el-button>
             <el-button size="small" type="warning" plain @click="importVisible = true">导入配置 JSON</el-button>

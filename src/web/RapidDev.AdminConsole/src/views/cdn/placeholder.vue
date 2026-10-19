@@ -13,7 +13,7 @@ const siteStore = useSiteStore()
 
 const title = (route.meta?.title as string) || '页面'
 const module = (route.meta?.module as string) || ''
-const desc = (route.meta?.desc as string) || '该功能页已规划,等待后端 API 就绪后接入。通用设计'
+const desc = (route.meta?.desc as string) || '该功能页已规划，等待后端 API 就绪后接入。'
 </script>
 
 <template>
