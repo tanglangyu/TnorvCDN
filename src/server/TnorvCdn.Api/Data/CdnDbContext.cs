@@ -51,7 +51,7 @@ public class CdnDbContext(DbContextOptions<CdnDbContext> options) : DbContext(op
           .HasColumnType("jsonb");
         mb.Entity<Cluster>().Property(c => c.DefaultsJson).HasColumnName("Defaults")
           .HasColumnType("jsonb");
-        mb.Entity<Node>().HasIndex(n => n.Token).IsUnique();
+        mb.Entity<Node>().HasIndex(n => n.Token).IsUnique().HasFilter("\"Token\" <> ''"); // 空串（未注册节点）不参与唯一约束
         mb.Entity<Node>().HasIndex(n => n.InstallToken);
         mb.Entity<User>().HasIndex(u => u.Username).IsUnique();
         mb.Entity<Server>().HasIndex(s => s.ClusterId);

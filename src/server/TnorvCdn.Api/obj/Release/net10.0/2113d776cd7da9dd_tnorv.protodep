@@ -1,0 +1,2 @@
+obj\Release\net10.0/Tnorv.cs \
+obj\Release\net10.0/TnorvGrpc.cs: ../../../proto/tnorv.proto
