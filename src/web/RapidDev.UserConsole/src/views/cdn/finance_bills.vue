@@ -12,8 +12,9 @@ const loadData = async () => {
   const params: any = { page: pager.value.page, pageSize: pager.value.pageSize }
   if (statusFilter.value) params.status = statusFilter.value
   const r = await cdnApi.get('/user/finance/bills', params) as any
-  pager.value.total = r?.data?.total ?? 0
-  return r?.data?.items || []
+  // request() 已拆包一次:返回值即 ApiResult.data = { total, items }
+  pager.value.total = r?.total ?? 0
+  return r?.items || []
 }
 
 const onFilter = () => {

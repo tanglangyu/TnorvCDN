@@ -9,8 +9,9 @@ const pager = ref({ page: 1, pageSize: 20, total: 0 })
 
 const loadData = async () => {
   const r = await cdnApi.get('/user/finance/logs', { page: pager.value.page, pageSize: pager.value.pageSize }) as any
-  pager.value.total = r?.data?.total ?? 0
-  return r?.data?.items || []
+  // request() 已拆包一次:返回值即 ApiResult.data = { total, items }
+  pager.value.total = r?.total ?? 0
+  return r?.items || []
 }
 const fmt = (t: string) => (t ? new Date(t).toLocaleString() : '-')
 </script>
