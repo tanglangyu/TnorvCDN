@@ -1,0 +1,592 @@
+// RapidDev 全局样式(v2 风格:Element Plus)
+// 引入 Element Plus 后,这里做少量定制 + Bootstrap 工具类垫片(迁移过渡层)
+
+:root {
+  --rapiddev-sidebar-width: 260px;
+  --rapiddev-sidebar-collapsed-width: 64px;
+  --rapiddev-header-height: 56px;
+}
+
+// 全局重置
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+// 浏览器主滚动条始终显示:不同页面内容高度不同时,滚动条出现/消失会让主内容区平移 15px,
+// 视觉上表现为"左侧菜单栏宽度变化"。强制常驻滚动条,所有页面主内容区可用宽度一致,且侧栏左对齐屏幕边缘。
+html {
+  overflow-y: scroll;
+  margin: 0 !important;
+}
+
+#app {
+  height: 100%;
+}
+
+// 自定义滚动条
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+// 暗色模式微调
+html.dark {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// 路由切换动画
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// 页面容器
+.page-content {
+  padding: 1.5rem;
+}
+
+// 卡片悬浮
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+// ============================================================
+// Bootstrap 工具类垫片(迁移过渡层)
+// 业务页面里遗留的 row/col-*/d-flex/mb-*/text-muted 等类由这里兜底,
+// 使页面无需逐个重写。后续逐页改造时可逐步删除对应规则。
+// ============================================================
+
+// —— 12 栅格(含页面实际用到的响应式档位) ——
+.row { display: flex; flex-wrap: wrap; margin: 0 -8px; row-gap: 16px; }
+.row > * { padding: 0 8px; width: 100%; }
+.row-deck > * { display: flex; }
+.row-deck > * > .card, .row-cards > * > .el-card { display: flex; flex-direction: column; width: 100%; }
+@for $i from 1 through 12 {
+  .col-#{$i} { width: ($i / 12) * 100%; }
+}
+@media (min-width: 576px) {
+  .col-sm-6 { width: 50%; }
+  .col-sm-3 { width: 25%; }
+  .col-sm-9 { width: 75%; }
+}
+@media (min-width: 768px) {
+  .col-md-6 { width: 50%; }
+  .col-md-4 { width: 33.3333%; }
+  .col-md-3 { width: 25%; }
+  .col-md-8 { width: 66.6667%; }
+}
+@media (min-width: 992px) {
+  .col-lg-3 { width: 25%; }
+  .col-lg-4 { width: 33.3333%; }
+  .col-lg-6 { width: 50%; }
+  .col-lg-8 { width: 66.6667%; }
+  .col-lg-9 { width: 75%; }
+}
+.col, .col-auto { flex: 1 1 0; }
+.col-auto { flex: 0 0 auto; width: auto; max-width: 100%; }
+
+// —— flex / 显示工具 ——
+.d-flex { display: flex; }
+.d-inline-flex { display: inline-flex; }
+.d-block { display: block; }
+.d-none { display: none; }
+@media (min-width: 1200px) {
+  .d-xl-flex { display: flex !important; }
+}
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+.flex-column { flex-direction: column; }
+.flex-fill { flex: 1 1 auto; }
+.flex-grow-1 { flex-grow: 1; }
+.justify-content-between { justify-content: space-between; }
+.justify-content-center { justify-content: center; }
+.justify-content-end { justify-content: flex-end; }
+.align-items-center { align-items: center; }
+.align-items-end { align-items: flex-end; }
+.align-items-start { align-items: flex-start; }
+.text-center { text-align: center; }
+.text-end { text-align: right; }
+.text-start { text-align: left; }
+.gap-0 { gap: 0; }
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+
+// —— 标题重置(须在间距工具类之前,否则 margin:0 会覆盖 mt-*/mb-* 组合) ——
+.h1, .h2, .h3, .h4, .h5, .h6 { color: var(--el-text-color-primary); margin: 0; }
+
+// —— 间距 ——
+@each $k, $v in (1: 0.25rem, 2: 0.5rem, 3: 1rem, 4: 1.5rem, 5: 3rem) {
+  .m-#{$k} { margin: $v; }
+  .mt-#{$k} { margin-top: $v; }
+  .mb-#{$k} { margin-bottom: $v; }
+  .ms-#{$k} { margin-left: $v; }
+  .me-#{$k} { margin-right: $v; }
+  .p-#{$k} { padding: $v; }
+  .px-#{$k} { padding-left: $v; padding-right: $v; }
+  .py-#{$k} { padding-top: $v; padding-bottom: $v; }
+  .pt-#{$k} { padding-top: $v; }
+  .pb-#{$k} { padding-bottom: $v; }
+  .ms-auto { margin-left: auto; }
+  .me-auto { margin-right: auto; }
+}
+.m-0 { margin: 0; }
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.p-0 { padding: 0; }
+.ms-auto { margin-left: auto; }
+.me-auto { margin-right: auto; }
+
+// —— 尺寸 ——
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+
+// —— 文字 ——
+.text-muted { color: var(--el-text-color-secondary); }
+.text-primary { color: var(--el-color-primary); }
+.text-danger { color: var(--el-color-danger); }
+.text-success { color: var(--el-color-success); }
+.text-warning { color: var(--el-color-warning); }
+.text-info { color: var(--el-color-info); }
+.text-uppercase { text-transform: uppercase; }
+.text-decoration-none { text-decoration: none; }
+.fw-bold { font-weight: 700; }
+.fw-normal { font-weight: 400; }
+.small, .text-small { font-size: 13px; }
+.fs-1 { font-size: 2rem; }
+.fs-2 { font-size: 1.5rem; }
+.fs-3 { font-size: 1.25rem; }
+.fs-4 { font-size: 1.1rem; }
+.fs-5 { font-size: 1rem; }
+.fs-6 { font-size: 0.875rem; }
+
+// —— 按钮组容器(btn-list:按钮排布) ——
+.btn-list { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+// —— spinner 兜底(组件内 loading 已由 el-button 处理) ——
+.spinner-border {
+  display: inline-block;
+  width: 1rem; height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: rdev-spin 0.6s linear infinite;
+  vertical-align: -0.125em;
+}
+.spinner-border-sm { width: 0.875rem; height: 0.875rem; border-width: 0.15em; }
+@keyframes rdev-spin { to { transform: rotate(360deg); } }
+
+// —— alert(登录页错误提示等) ——
+.alert {
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  font-size: 13px;
+  margin: 0;
+}
+.alert-danger {
+  background: var(--el-color-danger-light-9);
+  color: var(--el-color-danger);
+  border: 1px solid var(--el-color-danger-light-5);
+}
+.alert-success {
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+  border: 1px solid var(--el-color-success-light-5);
+}
+
+// —— badge 兜底(散落的 bg-*-lt / badge 类) ——
+.badge { display: inline-block; padding: 0.2em 0.5em; font-size: 12px; border-radius: 4px; line-height: 1.4; }
+.badge-sm { font-size: 11px; padding: 0.1em 0.4em; }
+@each $c in (primary, blue, success, green, danger, red, warning, yellow, info, gray) {
+  .bg-#{$c} { color: #fff; }
+  .bg-#{$c}-lt { color: var(--el-color-#{$c}); background: var(--el-color-#{$c}-light-9); }
+}
+.bg-secondary, .bg-secondary-lt, .bg-light, .bg-light-lt, .bg-gray, .bg-gray-lt {
+  color: var(--el-text-color-secondary); background: var(--el-fill-color);
+}
+.bg-primary { background: var(--el-color-primary); }
+.bg-success { background: var(--el-color-success); }
+.bg-danger { background: var(--el-color-danger); }
+.bg-warning { background: var(--el-color-warning); }
+.bg-info { background: var(--el-color-info); }
+.bg-secondary { background: var(--el-color-info); }
+.bg-light { background: var(--el-fill-color-light); }
+.bg-gray { background: var(--el-fill-color); }
+.rounded-pill { border-radius: 999px; }
+
+/* ============================================================
+   迁移垫片补充:Tabler 排版/组件类(Element Plus 化映射)
+   修复 dashboard 等页面 .h1/.subheader/.avatar 等类无样式问题
+   ============================================================ */
+
+/* 标题字号类(Tabler h1-h6 用于正文内的大数字/强调) */
+.h1 { font-size: 2rem; font-weight: 600; line-height: 1.2; }
+.h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.2; }
+.h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.2; }
+.h4 { font-size: 1.125rem; font-weight: 600; line-height: 1.2; }
+.h5 { font-size: 1rem; font-weight: 600; line-height: 1.2; }
+.h6 { font-size: 0.875rem; font-weight: 600; line-height: 1.2; }
+
+/* 卡片小标题(Tabler .subheader) */
+.subheader {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--el-text-color-secondary);
+}
+
+/* 中等字重 */
+.font-weight-medium { font-weight: 500; }
+
+/* 圆形头像/图标底(Tabler .avatar) */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.avatar i { font-size: 18px; }
+.avatar-sm { width: 24px; height: 24px; font-size: 13px; }
+.avatar-lg { width: 48px; height: 48px; font-size: 24px; }
+
+/* avatar 上的浅色底(bg-*-lt 在 avatar 场景) */
+.avatar.bg-primary-lt { background: var(--el-color-primary-light-8); color: var(--el-color-primary); }
+.avatar.bg-blue-lt { background: var(--el-color-primary-light-8); color: var(--el-color-primary); }
+.avatar.bg-success-lt { background: var(--el-color-success-light-8); color: var(--el-color-success); }
+.avatar.bg-green-lt { background: var(--el-color-success-light-8); color: var(--el-color-success); }
+.avatar.bg-danger-lt { background: var(--el-color-danger-light-8); color: var(--el-color-danger); }
+.avatar.bg-red-lt { background: var(--el-color-danger-light-8); color: var(--el-color-danger); }
+.avatar.bg-warning-lt { background: var(--el-color-warning-light-8); color: var(--el-color-warning); }
+.avatar.bg-yellow-lt { background: var(--el-color-warning-light-8); color: var(--el-color-warning); }
+.avatar.bg-info-lt { background: var(--el-color-info-light-8); color: var(--el-color-info); }
+.avatar.bg-secondary-lt { background: var(--el-fill-color); color: var(--el-text-color-secondary); }
+
+/* Bootstrap 栅格 gutter(g-1..g-5),与 row 的 -8px 默认边距区分 */
+@for $i from 1 through 5 {
+  .row.g-#{$i} { margin: #{-$i * 4}px; }
+  .row.g-#{$i} > * { padding: #{$i * 4}px; }
+}
+
+/* ============================================================
+   迁移垫片补充(第 2 批):间距/表单/细节类,修复"上下排列无间隔"
+   ============================================================ */
+
+/* me/ms 单位补齐(0.25rem 档)与 mx */
+.me-1 { margin-right: 0.25rem; }
+.ms-1 { margin-left: 0.25rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* —— 表单遗留类(form-label/form-control 等 → EP 变量映射) —— */
+.form-label {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+  color: var(--el-text-color-primary);
+}
+.form-text { font-size: 12px; color: var(--el-text-color-secondary); margin-top: 0.25rem; }
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 5px 11px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.form-control:focus { border-color: var(--el-color-primary); }
+.form-control:disabled { background: var(--el-fill-color-light); cursor: not-allowed; }
+textarea.form-control { resize: vertical; }
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 5px 11px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+}
+.form-switch { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.form-check { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+
+/* —— 排版补充 —— */
+.fw-medium { font-weight: 500; }
+.fw-semibold { font-weight: 600; }
+.font-monospace { font-family: 'Cascadia Mono', Consolas, 'Courier New', monospace; }
+.text-md-end { @media (min-width: 768px) { text-align: right; } }
+
+/* —— 语义色补充 —— */
+.text-warning { color: var(--el-color-warning); }
+.alert-warning { background: var(--el-color-warning-light-9); color: var(--el-color-warning); border: 1px solid var(--el-color-warning-light-5); }
+.alert-info { background: var(--el-color-info-light-9); color: var(--el-color-info); border: 1px solid var(--el-color-info-light-5); }
+
+/* —— 分隔线(如 detail 页 border-top 区块) —— */
+.border-top { border-top: 1px solid var(--el-border-color); }
+
+/* —— nav-tabs(遗留 Tab 页 → EP 风格) —— */
+.nav-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--el-border-color);
+}
+.nav-tabs .nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.nav-tabs .nav-link:hover { color: var(--el-color-primary); }
+.nav-tabs .nav-link.active { color: var(--el-color-primary); border-bottom-color: var(--el-color-primary); font-weight: 600; }
+
+/* —— datagrid(Tabler 详情键值对 → EP 风格) —— */
+.datagrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem 1.5rem; }
+.datagrid-item { min-width: 0; }
+.datagrid-title { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 0.25rem; }
+.datagrid-content { font-size: 14px; color: var(--el-text-color-primary); word-break: break-all; }
+
+/* —— 杂项 —— */
+.table-active > td, tr.table-active > td { background: var(--el-color-primary-light-9) !important; }
+.bg-azure-lt { color: var(--el-color-primary); background: var(--el-color-primary-light-9); }
+.avatar.bg-azure-lt { background: var(--el-color-primary-light-8); color: var(--el-color-primary); }
+
+/* mr/ml(Bootstrap 旧命名)兜底 + mx-1 */
+.mr-1 { margin-right: 0.25rem; }
+.mr-2 { margin-right: 0.5rem; }
+.ml-1 { margin-left: 0.25rem; }
+.ml-2 { margin-left: 0.5rem; }
+.mx-1 { margin-left: 0.25rem; margin-right: 0.25rem; }
+.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+
+/* —— 页头(所有列表页顶部标题区,统一 20px/600 + 副标题间距) —— */
+.page-header { margin-bottom: 1rem; }
+.page-header .row { align-items: center; }
+.page-title { font-size: 20px; font-weight: 600; color: var(--el-text-color-primary); margin: 0; line-height: 1.3; }
+.page-header .text-muted { margin-top: 2px; }
+
+/* ============================================================
+   全局风格定制(依据 Element Plus 官方文档效果)
+   表格 / 卡片 / 弹窗 / 分页 统一观感;两个控制台保持一致
+   ============================================================ */
+
+:root {
+  // 表头浅灰底(文档表格效果)、次要文字色、hover 高亮
+  --el-table-header-bg-color: var(--el-fill-color-light);
+  --el-table-header-text-color: var(--el-text-color-regular);
+  --el-table-row-hover-bg-color: var(--el-fill-color-lighter);
+  --el-table-border-color: var(--el-border-color-lighter);
+  --el-fill-color-blank: var(--el-bg-color);
+}
+.el-table {
+  // EP 在 .el-table 上定义同名变量,须在此层级覆盖才生效
+  --el-table-header-bg-color: var(--el-fill-color-light);
+  --el-table-row-hover-bg-color: var(--el-fill-color-lighter);
+  --el-table-border-color: var(--el-border-color-lighter);
+}
+
+// —— 表格:舒适的单元格内边距 + 表头加粗(文档默认观感) ——
+.el-table {
+  --el-table-tr-bg-color: var(--el-bg-color);
+  th.el-table__cell {
+    padding: 12px 0;
+    font-weight: 600;
+  }
+  td.el-table__cell {
+    padding: 12px 0;
+  }
+  .el-table__header-wrapper th.el-table__cell {
+    background: var(--el-table-header-bg-color);
+  }
+  .caret-wrapper { margin-left: 2px; }
+}
+
+// —— 卡片:边框更浅、标题行稳定 ——
+.el-card {
+  --el-card-border-color: var(--el-border-color-lighter);
+}
+
+// —— 弹窗遮罩高斯模糊(规范 §8) ——
+.el-overlay {
+  backdrop-filter: blur(4px);
+}
+
+// —— 分页:外边距微调,与表格留白 ——
+.el-pagination {
+  --el-pagination-button-height: 28px;
+  .el-pagination__total { margin-right: 8px; }
+}
+
+// ============================================================
+// 视觉打磨批(2026-10-17):微交互 / 数字排版 / 选区 / 入场动画
+// ============================================================
+
+// —— 文本选区用主色浅底(细节一致感) ——
+::selection { background: var(--el-color-primary-light-7); color: var(--el-text-color-primary); }
+
+// —— 数字排版:统计大数字等宽化,避免跳动 ——
+.h1, .h2, .h3 { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+// —— 页面入场动画(路由切换,配合 layout 的 <transition name="page">) ——
+.page-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+.page-leave-active { transition: opacity 0.12s ease; }
+.page-enter-from { opacity: 0; transform: translateY(6px); }
+.page-leave-to { opacity: 0; }
+
+// —— 统计卡入场:级联上浮(容器 .stat-stagger 的直接子项依次延迟) ——
+.stat-stagger > * { animation: stat-in 0.35s ease backwards; }
+.stat-stagger > *:nth-child(1) { animation-delay: 0s; }
+.stat-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.stat-stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.stat-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.stat-stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.stat-stagger > *:nth-child(6) { animation-delay: 0.25s; }
+.stat-stagger > *:nth-child(7) { animation-delay: 0.3s; }
+.stat-stagger > *:nth-child(8) { animation-delay: 0.35s; }
+@keyframes stat-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat-stagger > *, .page-enter-active, .page-leave-active { animation: none !important; transition: none !important; }
+}
+
+// —— 弹窗:阴影更聚焦(配合遮罩模糊) ——
+.el-dialog {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+}
+
+// —— 卡片内容过渡:主题切换/暗色切换不生硬 ——
+.el-card, .rapiddev-topbar, .rapiddev-sidebar { transition: background-color 0.2s ease, border-color 0.2s ease; }
+
+/* ============================================================
+   Vant 风格映射(参考 https://vant-ui.github.io 设计令牌)
+   思路:不引入 Vant 组件库(移动端库,不适配桌面后台),
+   而是把 Vant 的设计变量映射到 Element Plus CSS 变量上,
+   全站观感向 Vant 靠拢。仅作用于浅色模式,暗色保持 EP dark。
+   ============================================================ */
+html:not(.dark) {
+  // —— 品牌色:Vant 蓝 #1989fa(含 light 渐变档) ——
+  --el-color-primary: #1989fa;
+  --el-color-primary-dark-2: #167be1;
+  --el-color-primary-light-3: #5eacfc;
+  --el-color-primary-light-5: #8cc4fc;
+  --el-color-primary-light-7: #b9dcfd;
+  --el-color-primary-light-8: #d1e7fd;
+  --el-color-primary-light-9: #e8f3fe;
+
+  // —— 语义色:Vant success/danger/warning/info ——
+  --el-color-success: #07c160;
+  --el-color-success-dark-2: #06ae56;
+  --el-color-success-light-3: #51d490;
+  --el-color-success-light-5: #83e0af;
+  --el-color-success-light-7: #b5ecce;
+  --el-color-success-light-8: #cef1dc;
+  --el-color-success-light-9: #e6f8ef;
+
+  --el-color-danger: #ee0a24;
+  --el-color-danger-dark-2: #d60920;
+  --el-color-danger-light-3: #f25466;
+  --el-color-danger-light-5: #f68491;
+  --el-color-danger-light-7: #fab5bd;
+  --el-color-danger-light-8: #fccdd3;
+  --el-color-danger-light-9: #fee6ea;
+
+  --el-color-warning: #ff976a;
+  --el-color-warning-dark-2: #e68860;
+  --el-color-warning-light-3: #ffb696;
+  --el-color-warning-light-5: #ffccb4;
+  --el-color-warning-light-7: #ffe0d4;
+  --el-color-warning-light-8: #ffebe3;
+  --el-color-warning-light-9: #fff5f0;
+
+  --el-color-info: #969799;
+  --el-color-info-dark-2: #87888a;
+  --el-color-info-light-3: #b3b4b5;
+  --el-color-info-light-5: #cbcbcc;
+  --el-color-info-light-7: #e3e3e4;
+  --el-color-info-light-8: #eeeff0;
+  --el-color-info-light-9: #f5f6f7;
+
+  // —— 文本:Vant #323233 / #646566 / #c8c9cc ——
+  --el-text-color-primary: #323233;
+  --el-text-color-regular: #4b4b52;
+  --el-text-color-secondary: #646566;
+  --el-text-color-placeholder: #c8c9cc;
+
+  // —— 边框/填充:Vant #ebedf0 / #f2f3f5 / #f7f8fa ——
+  --el-border-color: #ebedf0;
+  --el-border-color-light: #ebedf0;
+  --el-border-color-lighter: #f2f3f5;
+  --el-border-color-extra-light: #f7f8fa;
+  --el-fill-color: #f2f3f5;
+  --el-fill-color-light: #f7f8fa;
+  --el-fill-color-lighter: #fafbfc;
+  --el-fill-color-blank: #ffffff;
+
+  // —— 组件细节:卡片 8px 圆角(Vant --van-radius-lg)、按钮 500 字重 ——
+  --el-border-radius-base: 4px;
+  --el-font-weight-primary: 500;
+}
+
+html:not(.dark) {
+  .el-card { border-radius: 8px; }
+  .el-dialog { border-radius: 16px; }          // Vant 弹层圆角
+  .el-drawer { border-radius: 0; }
+  .el-message { border-radius: 8px; border: none; }
+  .el-notification { border-radius: 8px; }
+  .el-button { font-weight: 500; border-radius: 4px; }
+  .el-tag { border-radius: 4px; font-weight: 500; }
+  .el-input__wrapper, .el-select__wrapper, .el-textarea__inner {
+    border-radius: 4px;
+  }
+  // 表头底色跟随 Vant 填充灰
+  .el-table {
+    --el-table-header-bg-color: #f7f8fa;
+  }
+}

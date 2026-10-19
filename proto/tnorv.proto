@@ -1,0 +1,109 @@
+// TnorvCDN 节点↔主控 gRPC 协议（proto3）
+// 通用设计：注册、配置拉取（版本比对）、心跳、日志批量上报。
+syntax = "proto3";
+
+package tnorv;
+
+option go_package = "tnorv/node/pb";
+option csharp_namespace = "TnorvCdn.Grpc";
+
+// ============ 节点服务（主控实现，节点调用） ============
+
+service NodeService {
+  // 节点首次启动自动注册（携带安装 Token），返回节点身份
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // 拉取配置：携带当前配置版本，主控版本更新则返回完整快照
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+
+  // 心跳：上报运行指标（CPU/内存/带宽/连接数/QPS）
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+// ============ 日志服务（主控实现，节点批量上报） ============
+
+service LogService {
+  // 批量上报访问日志（节点本地缓冲，最多 500 条/次）
+  rpc ReportAccessLogs(ReportAccessLogsRequest) returns (ReportAccessLogsResponse);
+}
+
+// ============ 消息模型 ============
+
+message RegisterRequest {
+  string install_token = 1;   // 安装令牌（管理员生成）
+  string hostname = 2;        // 主机名
+  string version = 3;         // 节点程序版本
+  repeated string public_ips = 4;   // 对外 IP（IPv4/IPv6）
+  string os = 5;              // 操作系统
+  string arch = 6;            // amd64 / arm64
+}
+
+message RegisterResponse {
+  int64 node_id = 1;
+  string node_token = 2;      // 后续通信凭证
+  string cluster_name = 3;
+}
+
+message GetConfigRequest {
+  string node_token = 1;
+  int64 config_version = 2;   // 当前版本；0 表示首次
+}
+
+message GetConfigResponse {
+  int64 config_version = 1;
+  string config_json = 2;     // 完整节点配置快照（NodeConfig 的 JSON）
+  bool changed = 3;
+}
+
+message HeartbeatRequest {
+  string node_token = 1;
+  int64 config_version = 2;   // 节点当前生效版本（主控可判断是否需推送）
+  NodeStats stats = 3;
+}
+
+message NodeStats {
+  double cpu_usage = 1;       // 0-100
+  double mem_usage = 2;       // 0-100
+  uint64 bytes_in = 3;        // 当日入流量
+  uint64 bytes_out = 4;       // 当日出流量
+  uint32 connections = 5;     // 当前连接数
+  double qps = 6;
+  double load = 7;            // 系统负载
+  uint32 uptime_seconds = 8;
+}
+
+message HeartbeatResponse {
+  bool ok = 1;
+  int64 latest_version = 2;   // 主控最新配置版本（节点可主动拉取）
+}
+
+message AccessLog {
+  int64 server_id = 1;        // 网站ID
+  string remote_addr = 2;     // 客户端IP
+  string method = 3;
+  string scheme = 4;
+  string host = 5;
+  string uri = 6;
+  string proto = 7;
+  int32 status = 8;
+  uint64 bytes_sent = 9;
+  string referer = 10;
+  string user_agent = 11;
+  double request_time_ms = 12;
+  string cache_status = 13;   // HIT/MISS/BYPASS/STALE/EXPIRED
+  string upstream_addr = 14;  // 命中源站
+  string request_id = 15;
+  string node_id = 16;
+  int64 timestamp = 17;       // unix 秒
+  string waf_action = 18;     // block/pass/captcha/...（未拦截为空）
+  string block_reason = 19;
+}
+
+message ReportAccessLogsRequest {
+  string node_token = 1;
+  repeated AccessLog logs = 2;
+}
+
+message ReportAccessLogsResponse {
+  bool ok = 1;
+}
