@@ -6,16 +6,12 @@ import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useSiteStore } from '@/store/site'
 import { TCard } from '@/components/t'
-import { http } from '@/utils/request'
-import { monitorApi } from '@/api/monitor'
 import { cdnApi } from '@/api/cdn'
 import { ElMessageBox } from 'element-plus'
 
 const userStore = useUserStore()
 const siteStore = useSiteStore()
 
-const stats = ref<{ users: string | number; jobs: string | number; policies: string | number; online: string | number }>({ users: '—', jobs: '—', policies: '—', online: '—' })
-const loading = ref(false)
 
 // ---- 我的 CDN 概览（/api/user/*，失败静默） ----
 const cdn = ref<any>({ servers: '—', todayBytes: '—', todayRequests: '—', todayBlocked: '—', hitRate: '—', geo: [], geoTotal: 0 })
@@ -46,25 +42,7 @@ async function loadCdnStats() {
   } catch { /* 概览失败不阻塞看板 */ }
 }
 
-async function loadStats() {
-  loading.value = true
-  try {
-    const [users, jobs, policies, online] = await Promise.all([
-      http.get<any>('/system/user/list', { pageIndex: 1, pageSize: 1 }).catch(() => null),
-      http.get<any>('/monitor/job/list', { pageIndex: 1, pageSize: 1 }).catch(() => null),
-      http.get<any>('/monitor/ratelimit/list', { pageIndex: 1, pageSize: 1 }).catch(() => null),
-      monitorApi.onlineUsers().catch(() => null),
-    ])
-    stats.value.users = users?.total ?? '—'
-    stats.value.jobs = jobs?.total ?? '—'
-    stats.value.policies = policies?.total ?? '—'
-    stats.value.online = Array.isArray(online) ? online.length : '—'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => { loadStats(); loadCdnStats(); loadPosts() })
+onMounted(() => { loadCdnStats(); loadPosts() })
 
 // ---- 公告通用设计----
 const posts = ref<any[]>([])
@@ -104,39 +82,6 @@ showPopup()
           <h2 class="page-title">欢迎回来,{{ userStore.userInfo?.nickName }} 👋</h2>
           <div class="text-muted">{{ siteStore.name }} · {{ siteStore.subtitle || '基于 .NET 10 + Vue3 + Tabler' }}</div>
         </div>
-      </div>
-    </div>
-
-    <div class="row row-deck row-cards mb-4 stat-stagger">
-      <div class="col-sm-6 col-lg-3">
-        <TCard bordered>
-          <div class="d-flex align-items-center">
-            <div class="subheader">系统用户</div>
-          </div>
-          <div class="h1 mb-0 mt-2">{{ stats.users }}</div>
-          <div class="d-flex mt-2 text-muted"><i class="ti ti-users me-1"></i>用户总数</div>
-        </TCard>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <TCard bordered>
-          <div class="subheader">定时任务</div>
-          <div class="h1 mb-0 mt-2">{{ stats.jobs }}</div>
-          <div class="d-flex mt-2 text-muted"><i class="ti ti-clock me-1"></i>任务总数</div>
-        </TCard>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <TCard bordered>
-          <div class="subheader">流控策略</div>
-          <div class="h1 mb-0 mt-2">{{ stats.policies }}</div>
-          <div class="d-flex mt-2 text-muted"><i class="ti ti-gauge me-1"></i>已配置策略</div>
-        </TCard>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <TCard bordered>
-          <div class="subheader">在线用户</div>
-          <div class="h1 mb-0 mt-2">{{ stats.online }}</div>
-          <div class="d-flex mt-2 text-muted"><i class="ti ti-wifi me-1"></i>当前在线</div>
-        </TCard>
       </div>
     </div>
 

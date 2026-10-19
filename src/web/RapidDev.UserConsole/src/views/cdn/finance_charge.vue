@@ -12,7 +12,7 @@ const packages = ref<any[]>([])
 const loadData = async () => {
   const acc = await cdnApi.get('/user/account')
   account.value = acc && acc.data ? acc.data : acc
-  try { const pl = await cdnApi.get('/user/plans'); plans.value = Array.isArray(pl) ? pl : (Array.isArray(pl?.data) ? pl.data : (Array.isArray(pl?.data?.data) ? pl.data.data : [])) } catch { plans.value = [] }
+  try { const pl = await cdnApi.get('/user/plans'); plans.value = Array.isArray(pl) ? pl : (Array.isArray(pl?.data) ? pl.data : []) } catch { plans.value = [] }
   try { const pk = await cdnApi.get('/user/flow-packages'); packages.value = Array.isArray(pk) ? pk : (pk?.data || []) } catch { packages.value = [] }
   return { account, plans, packages }
 }
@@ -66,7 +66,7 @@ const buyPackage = async (row: any, method: string) => {
           <el-col :span="8">
             <el-card shadow="never">
               <div class="text-muted" style="font-size:13px">账户余额</div>
-              <div style="font-size:28px;font-weight:600">¥{{ ((data.account?.balanceCents ?? 0) as number / 100).toFixed(2) }}</div>
+              <div style="font-size:28px;font-weight:600">¥{{ (((data?.account?.balanceCents ?? 0) as number) / 100).toFixed(2) }}</div>
             </el-card>
           </el-col>
           <el-col :span="16">
@@ -83,7 +83,7 @@ const buyPackage = async (row: any, method: string) => {
         </el-row>
         <el-card class="mb-4" shadow="never">
           <div class="mb-2" style="font-weight:600">购买套餐（余额或扫码支付）</div>
-          <el-table :data="data.plans || []" stripe>
+          <el-table :data="data?.plans || []" stripe>
             <el-table-column prop="name" label="套餐" min-width="120" />
             <el-table-column label="价格" width="110">
               <template #default="{ row }">¥{{ (row.priceCents / 100).toFixed(2) }}/月</template>
@@ -101,9 +101,9 @@ const buyPackage = async (row: any, method: string) => {
             </el-table-column>
           </el-table>
         </el-card>
-        <el-card v-if="(data.packages || []).length" shadow="never">
+        <el-card v-if="(data?.packages || []).length" shadow="never">
           <div class="mb-2" style="font-weight:600">购买流量包</div>
-          <el-table :data="data.packages" stripe>
+          <el-table :data="data?.packages || []" stripe>
             <el-table-column prop="name" label="流量包" min-width="120" />
             <el-table-column label="流量" width="140">
               <template #default="{ row }">{{ (row.bytes / 1073741824).toFixed(0) }} GB</template>

@@ -16,11 +16,11 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080',
+        target: process.env.API_PROXY || 'http://127.0.0.1:8080',
         changeOrigin: true,
       },
       '/hubs': {
-        target: 'http://127.0.0.1:8080',
+        target: process.env.API_PROXY || 'http://127.0.0.1:8080',
         changeOrigin: true,
         ws: true,
       },
