@@ -48,21 +48,32 @@ ASPNETCORE_URLS=http://0.0.0.0:8080 dotnet publish/TnorvCdn.Api.dll
 
 ```bash
 cd src/node
-GOOS=linux GOARCH=amd64 go build -o tnorv-node ./cmd/node
+GOOS=linux GOARCH=amd64 go build -o tnorv-node ./cmd/tnorv-node
 # 部署到节点服务器后在管理端「节点管理」创建节点，获得 installToken：
-./tnorv-node --master http://<主控>:8080 --install-token <installToken>
+./tnorv-node -c configs/tnorv-node.json   # 配置文件见下
 ```
 
-节点启动后携带 install_token 调用 NodeService/Register 自动注册，随后每 10s 拉取配置快照热更新。
+节点配置（`configs/tnorv-node.json`）：
+
+```json
+{
+  "masterUrl": "http://<主控>:8080",
+  "installToken": "<管理端创建节点时下发的安装令牌>"
+}
+```
+
+节点首次启动携带 install_token 调用 `/grpc/register` 自动注册（令牌一次性消耗），随后每 10s 拉取配置快照热更新。缓存刷新、CC 解封等指令随配置快照下发执行。
 
 ### 3. 控制台（Vue 3）
 
 ```bash
 cd src/web/RapidDev.AdminConsole   # 或 RapidDev.UserConsole
 npm install
-npm run dev     # 开发模式，vite 代理默认指向 http://127.0.0.1:8080
+npm run dev     # 开发模式，vite 代理默认指向 http://127.0.0.1:8080（可用 API_PROXY 环境变量覆盖）
 npm run build   # 生产构建（dist 交由主控静态托管或任意 Web 服务器）
 ```
+
+用户控制台 base 为 `/user/`，部署时注意路径。
 
 ### 4. 节点自升级（可选）
 
@@ -78,7 +89,20 @@ npm run build   # 生产构建（dist 交由主控静态托管或任意 Web 服�
 | `appsettings.json` ConnectionStrings | `<YOUR_DB_PASSWORD>` |
 | `appsettings.json` Jwt:Key | `<CHANGE-ME-...>` |
 | `appsettings.json` Dns.Providers.* | 空字符串（自行填写） |
-| 节点 `--master` / `--install-token` | 运行时传入 |
+| 节点 `masterUrl` / `installToken` | 运行时传入 |
+
+## 图诺弗通信 · 全球短信 / 全球语音
+
+TnorvCDN 内置的短信能力（验证码、手机号登录、风控提醒）默认对接
+[图诺弗通信](https://sms.tnorv.com/) 网关协议，也支持按同一协议自行对接。
+
+![图诺弗通信](https://www.tunuofu.com/logo.png)
+
+- **全球短信**：覆盖 200+ 国家与地区，验证码 / 通知 / 营销，秒级触达，提供送达回执与失败重试
+- **全球语音**：语音验证码与语音通知，穿透短信不可达场景
+- **企业级稳定**：多通道智能路由、实时用量监控、7×24 技术支持
+
+注册即送试用额度：**[sms.tnorv.com](https://sms.tnorv.com/)** ｜ 官网：**[www.tunuofu.com](https://www.tunuofu.com/)**
 
 ## License
 
