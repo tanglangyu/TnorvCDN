@@ -9,7 +9,6 @@ import CdnGate from './gate.vue'
 const gate = ref()
 const saving = ref(false)
 const verifying = ref(false)
-const form = ref<any>({ enabled: false, provider: 'aggregated', defaultDomainId: '', providers: {} })
 const activeProvider = ref('aggregated')
 
 const providerNames: Record<string, string> = {
@@ -23,9 +22,34 @@ const providerFields: any = {
   cloudflare: [{ k: 'apiToken', label: 'API Token', secret: true }],
 }
 
+// 空表单：预置所有厂商的凭证键位为空串，保证数据加载前模板渲染不因 undefined 崩溃
+const emptyForm = () => ({
+  enabled: false,
+  provider: 'aggregated',
+  defaultDomainId: '',
+  providers: Object.fromEntries(Object.keys(providerFields).map(k => [
+    k, Object.fromEntries(providerFields[k].map((f: any) => [f.k, ''])),
+  ])),
+})
+
+const form = ref<any>(emptyForm())
+
+// 字段写入统一入口：模板中 form.providers[key] 以可选链读取，写入时兜底确保键位存在
+const onField = (key: string, k: string, v: string) => {
+  if (form.value.providers[key]) form.value.providers[key][k] = v
+}
+
 const loadData = async () => {
   const data = await cdnApi.get('/admin/dns/settings') as any
-  form.value = { enabled: data.enabled, provider: data.provider, defaultDomainId: data.defaultDomainId, providers: data.providers || {} }
+  const base = emptyForm()
+  form.value = {
+    enabled: data.enabled,
+    provider: data.provider,
+    defaultDomainId: data.defaultDomainId,
+    providers: Object.fromEntries(Object.keys(base.providers).map(k => ({
+      ...base.providers[k], ...(data.providers?.[k] || {}),
+    }))),
+  }
   activeProvider.value = data.provider || 'aggregated'
   return data
 }
@@ -76,7 +100,7 @@ async function verify() {
               </el-select>
             </el-form-item>
             <el-form-item label="默认主域名ID">
-              <el-input v-model="form.defaultDomainId" placeholder="如聚合DNS提供商的主域名 ID" style="width: 300px" />
+              <el-input v-model="form.defaultDomainId" placeholder="如聚合DNS qinyuan.cc 的域名 ID（29）" style="width: 300px" />
               <span class="text-muted small ms-3">网站 CNAME 与集群 A 记录都建在这个主域名下</span>
             </el-form-item>
           </el-form>
@@ -89,7 +113,7 @@ async function verify() {
               :label="providerNames[key] + (form.provider === key ? '（使用中）' : '')">
               <el-form label-width="180px" class="mt-2" style="max-width: 640px">
                 <el-form-item v-for="f in fields" :key="f.k" :label="f.label">
-                  <el-input v-model="form.providers[key][f.k]" :placeholder="f.secret ? '已设置（留空或保持 ****** = 不修改）' : ''"
+                  <el-input :model-value="form.providers[key]?.[f.k]" @update:model-value="onField(key, f.k, $event)" :placeholder="f.secret ? '已设置（留空或保持 ****** = 不修改）' : ''"
                     :type="f.secret && form.providers[key]?.[f.k] !== '******' ? 'password' : 'text'"
                     :show-password="f.secret" />
                 </el-form-item>
