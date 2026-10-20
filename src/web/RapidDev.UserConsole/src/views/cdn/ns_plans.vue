@@ -21,7 +21,7 @@ const loadData = async () => (await cdnApi.get('/user/ns/plans')) as any
 const myPlan = ref<any>(null)
 const loadMyPlan = async () => {
   try {
-    const r = (await cdnApi.get('/user/servers-settings/my-plan')) as any
+    const r = (await cdnApi.get('/user/my-plan')) as any
     const d = r?.data ?? r
     myPlan.value = d?.plans?.[0] ?? null
   } catch { /* 静默 */ }

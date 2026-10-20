@@ -62,6 +62,15 @@ public static class RapidDevAuthEndpoints
         auth.MapPost("/refresh", () => Results.Json(new { code = 400, message = "请重新登录", data = (object?)null }))
             .AllowAnonymous();
 
+        // 用户端基础权限码：普通用户默认全量可见（细粒度功能开关由 PlanGate 套餐矩阵在 API 层控制），
+        // 与 RapidDev.UserConsole 侧边栏/路由守卫的 perm 码一一对应。
+        var userBasePermissions = new[]
+        {
+            "user:server:list", "user:server:cache", "user:cert:list", "user:stat:list",
+            "user:lb:list", "user:waf:list", "user:plan:list", "user:antiddos:list",
+            "user:ns:list", "user:finance:list", "user:ticket:list", "user:acl:list", "user:message:list",
+        };
+
         // 当前用户信息
         auth.MapGet("/userinfo", async (CdnDbContext db, IConfiguration cfg) =>
         {
@@ -79,7 +88,7 @@ public static class RapidDevAuthEndpoints
                     userName = user.Username,
                     nickName = user.Username,
                     roles = new[] { user.IsAdmin ? "admin" : "user" },
-                    permissions = user.IsAdmin ? new[] { "*:*:*" } : Array.Empty<string>(),
+                    permissions = user.IsAdmin ? new[] { "*:*:*" } : userBasePermissions,
                 },
             });
         }).AllowAnonymous();
@@ -103,7 +112,7 @@ public static class RapidDevAuthEndpoints
             {
                 code = 200,
                 message = "操作成功",
-                data = user?.IsAdmin == true ? new[] { "*:*:*" } : Array.Empty<string>(),
+                data = user?.IsAdmin == true ? new[] { "*:*:*" } : userBasePermissions,
             });
         }).AllowAnonymous();
     }
