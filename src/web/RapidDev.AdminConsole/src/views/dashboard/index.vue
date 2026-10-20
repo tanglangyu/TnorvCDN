@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * 数据看板（概况）—— 通用设计
+ * 数据看板（概况）—— 对齐竞品 概况页：
  * 统计卡（集群/节点/用户/站点/流量含环比）+ 实时指标 + 趋势切换（24h/15d 流量/访问量）
  * + 排行（域名/节点/路径/独立IP）+ 状态码分布 + 地区分布。全部来自主控真实聚合端点。
  */
@@ -104,11 +104,24 @@ async function loadAll() {
 
 function switchTrend(m: any) { trendMode.value = m }
 
+// 平台特性卡片数据 (merge: standalone <script> block replaced by setup-scope const)
+const features = [
+  { title: '网站接入', desc: '添加站点、配置源站与缓存', icon: 'world', to: '/cdn/servers' },
+  { title: '边缘节点', desc: '集群与节点在线监控', icon: 'server', to: '/cdn/clusters' },
+  { title: '备案审核', desc: '域名 ICP 备案人工审核', icon: 'clipboard-check', to: '/cdn/dns/icp' },
+  { title: '订单管理', desc: '充值/套餐/流量包订单', icon: 'receipt', to: '/cdn/finance/orders' },
+  { title: '套餐管理', desc: '套餐与优惠券配置', icon: 'gift', to: '/cdn/plans' },
+  { title: '用量统计', desc: '流量与请求趋势', icon: 'chart-area', to: '/cdn/servers/traffic-stats' },
+  { title: 'WAF 防护', desc: 'CC/WAF 拦截事件', icon: 'shield-half', to: '/cdn/servers/cc' },
+  { title: '证书管理', desc: '手动上传证书下发节点', icon: 'certificate', to: '/cdn/servers/certs' },
+]
+
 onMounted(() => {
   loadAll()
   timer = setInterval(loadAll, 30000) // 30s 自动刷新（实时指标跟随心跳节奏）
 })
 onBeforeUnmount(() => clearInterval(timer))
+
 </script>
 
 <template>
@@ -121,15 +134,6 @@ onBeforeUnmount(() => clearInterval(timer))
         </div>
       </div>
     </div>
-
-    <!-- 图诺弗推广（开源版赞助信息） -->
-    <el-alert type="info" :closable="true" class="mb-4">
-      <template #title>
-        由 <a href="https://www.tunuofu.com/" target="_blank" rel="noopener"><strong>图诺弗</strong></a>
-        提供技术支持 ——
-        <a href="https://sms.tnorv.com/" target="_blank" rel="noopener"><strong>图诺弗通信</strong></a>：全球短信、全球语音
-      </template>
-    </el-alert>
 
     <!-- 统计卡片 -->
     <div class="row row-deck row-cards mb-1 stat-stagger">
@@ -328,7 +332,7 @@ onBeforeUnmount(() => clearInterval(timer))
       <el-empty v-else description="正在解析访客 IP 归属（后台每 5 分钟批量解析），稍后刷新可见" :image-size="60" />
     </el-card>
 
-    <!-- 客户端统计通用设计 -->
+    <!-- 客户端统计（对齐竞品 /settings/client-browsers、client-systems） -->
     <el-card class="mb-4">
       <template #header>
         <div class="d-flex justify-content-between align-items-center">
@@ -373,16 +377,3 @@ onBeforeUnmount(() => clearInterval(timer))
   </div>
 </template>
 
-<script lang="ts">
-const features = [
-  { title: '网站接入', desc: '添加站点、配置源站与缓存', icon: 'world', to: '/cdn/servers' },
-  { title: '边缘节点', desc: '集群与节点在线监控', icon: 'server', to: '/cdn/clusters' },
-  { title: '备案审核', desc: '域名 ICP 备案人工审核', icon: 'clipboard-check', to: '/cdn/dns/icp' },
-  { title: '订单管理', desc: '充值/套餐/流量包订单', icon: 'receipt', to: '/cdn/finance/orders' },
-  { title: '套餐管理', desc: '套餐与优惠券配置', icon: 'gift', to: '/cdn/plans' },
-  { title: '用量统计', desc: '流量与请求趋势', icon: 'chart-area', to: '/cdn/servers/traffic-stats' },
-  { title: 'WAF 防护', desc: 'CC/WAF 拦截事件', icon: 'shield-half', to: '/cdn/servers/cc' },
-  { title: '证书管理', desc: '手动上传证书下发节点', icon: 'certificate', to: '/cdn/servers/certs' },
-]
-export default { data() { return { features } } }
-</script>

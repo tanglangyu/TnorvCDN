@@ -44,7 +44,21 @@ async function loadCdnStats() {
 
 onMounted(() => { loadCdnStats(); loadPosts() })
 
-// ---- 公告通用设计----
+// 平台特性卡片数据 (merge: standalone <script> block replaced by setup-scope const)
+const features = [
+  { title: '多租户隔离', desc: '租户字段 + 全局查询过滤器,默认开启', icon: 'building-arch' },
+  { title: 'RBAC 权限', desc: '用户-角色-菜单/按钮,数据权限范围', icon: 'shield' },
+  { title: 'JWT 鉴权', desc: '短令牌 + 刷新令牌 + Garnet 黑名单', icon: 'key' },
+  { title: '定时任务', desc: 'Quartz + 可视化任务管理 + 执行日志', icon: 'clock' },
+  { title: '流控策略', desc: '分区限流 + 滑动窗口 + 令牌桶', icon: 'gauge' },
+  { title: '代码生成器', desc: '选表 → 自动生成前后端 CRUD', icon: 'code' },
+  { title: 'SignalR 实时', desc: '任务进度、系统通知实时推送', icon: 'broadcast' },
+  { title: '暗色模式', desc: '一键切换,持久化,防闪烁', icon: 'moon' },
+  { title: 'Vibe Coding', desc: '完整 docs + 模板,AI 照着改即可', icon: 'robot' },
+]
+
+
+// ---- 公告（对齐竞品 用户端 posts：公告栏 + 弹窗）----
 const posts = ref<any[]>([])
 const popupPost = ref<any>(null)
 const POSTS_DISMISS_KEY = 'tnorv_popup_dismissed'
@@ -152,17 +166,3 @@ showPopup()
   </div>
 </template>
 
-<script lang="ts">
-const features = [
-  { title: '多租户隔离', desc: '租户字段 + 全局查询过滤器,默认开启', icon: 'building-arch' },
-  { title: 'RBAC 权限', desc: '用户-角色-菜单/按钮,数据权限范围', icon: 'shield' },
-  { title: 'JWT 鉴权', desc: '短令牌 + 刷新令牌 + Garnet 黑名单', icon: 'key' },
-  { title: '定时任务', desc: 'Quartz + 可视化任务管理 + 执行日志', icon: 'clock' },
-  { title: '流控策略', desc: '分区限流 + 滑动窗口 + 令牌桶', icon: 'gauge' },
-  { title: '代码生成器', desc: '选表 → 自动生成前后端 CRUD', icon: 'code' },
-  { title: 'SignalR 实时', desc: '任务进度、系统通知实时推送', icon: 'broadcast' },
-  { title: '暗色模式', desc: '一键切换,持久化,防闪烁', icon: 'moon' },
-  { title: 'Vibe Coding', desc: '完整 docs + 模板,AI 照着改即可', icon: 'robot' },
-]
-export default { data() { return { features } } }
-</script>

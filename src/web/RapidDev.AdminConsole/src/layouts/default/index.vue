@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useThemeStore } from '@/store/theme'
@@ -7,6 +7,8 @@ import { useLayoutStore } from '@/store/layout'
 import { useSiteStore } from '@/store/site'
 import { TThemeToggle } from '@/components/t'
 import { authApi } from '@/api/auth'
+import { cdnApi } from '@/api/cdn'
+import { ElMessage } from 'element-plus'
 import NotificationBell from '@/components/NotificationBell.vue'
 import UserMenu from '@/components/UserMenu.vue'
 import CryptoSwitch from '@/components/CryptoSwitch.vue'
@@ -156,11 +158,52 @@ async function handleLogout() {
 
 function toggleSidebar() { layoutStore.toggle() }
 
-onMounted(() => {
+onMounted(async () => {
   themeStore.init()
   siteStore.load()
   if (userStore.token) startNotificationHub()
+  try {
+    const r = await cdnApi.get('/admin/version/check')
+    version.value = r.current || ''
+  } catch { version.value = '' }
 })
+
+// ---- 版本检查与全局搜索 (merge: 原 Options API 混合块, 转为 setup 写法) ----
+const version = ref('')
+const searchKw = ref('')
+const searchVisible = ref(false)
+const searching = ref(false)
+const results = ref<any>(null)
+const hoverItem = ref('')
+const searchCatLabel: Record<string, string> = { servers: '站点', users: '用户', nodes: '节点', tickets: '工单', orders: '订单' }
+let searchTimer: any = null
+
+async function checkVersion() {
+  try {
+    const r = await cdnApi.get('/admin/version/check')
+    if (!r.latest) ElMessage.info(`当前版本 ${r.current}（未获取到最新版本信息）`)
+    else if (r.upToDate) ElMessage.success(`已是最新版本 ${r.current}`)
+    else ElMessage.warning(`发现新版本 ${r.latest}，当前 ${r.current}`)
+  } catch { ElMessage.error('版本检查失败') }
+}
+function doSearch() {
+  clearTimeout(searchTimer)
+  const kw = searchKw.value.trim()
+  if (!kw) { results.value = null; return }
+  searchTimer = setTimeout(async () => {
+    searching.value = true
+    try {
+      results.value = await cdnApi.get('/admin/search', { q: kw })
+    } catch { results.value = null }
+    finally { searching.value = false }
+  }, 250)
+}
+function goResult(url: string) {
+  searchVisible.value = false
+  searchKw.value = ''
+  results.value = null
+  if (url) router.push(url)
+}
 </script>
 
 <template>
@@ -200,7 +243,7 @@ onMounted(() => {
               <span v-else>{{ b.title }}</span>
             </li>
           </ol>
-          <!-- 全局搜索通用设计 -->
+          <!-- 全局搜索（对齐竞品 /search：站点/用户/节点/工单/订单聚合） -->
           <el-popover v-model:visible="searchVisible" placement="bottom-start" :width="420" trigger="click">
             <template #reference>
               <el-input v-model="searchKw" size="small" placeholder="搜索站点/用户/节点/工单/订单…" style="width: 240px" class="ms-3 d-none d-lg-block"
@@ -254,59 +297,6 @@ onMounted(() => {
   </div>
 </template>
 
-<script lang="ts">
-import { cdnApi } from '@/api/cdn'
-import { ElMessage } from 'element-plus'
-export default {
-  data() {
-    return {
-      version: '' as string,
-      searchKw: '' as string,
-      searchVisible: false,
-      searching: false,
-      results: null as any,
-      hoverItem: '' as string,
-      searchCatLabel: { servers: '站点', users: '用户', nodes: '节点', tickets: '工单', orders: '订单' } as Record<string, string>,
-      searchTimer: null as any,
-    }
-  },
-  async mounted() {
-    try {
-      const r = await cdnApi.get('/admin/version/check')
-      this.version = r.current || ''
-    } catch { this.version = '' }
-  },
-  methods: {
-    async checkVersion() {
-      try {
-        const r = await cdnApi.get('/admin/version/check')
-        if (!r.latest) ElMessage.info(`当前版本 ${r.current}（未获取到最新版本信息）`)
-        else if (r.upToDate) ElMessage.success(`已是最新版本 ${r.current}`)
-        else ElMessage.warning(`发现新版本 ${r.latest}，当前 ${r.current}`)
-      } catch { ElMessage.error('版本检查失败') }
-    },
-    // 全局搜索（防抖 250ms）
-    doSearch() {
-      clearTimeout(this.searchTimer)
-      const kw = this.searchKw.trim()
-      if (!kw) { this.results = null; return }
-      this.searchTimer = setTimeout(async () => {
-        this.searching = true
-        try {
-          this.results = await cdnApi.get('/admin/search', { q: kw })
-        } catch { this.results = null }
-        finally { this.searching = false }
-      }, 250)
-    },
-    goResult(url: string) {
-      this.searchVisible = false
-      this.searchKw = ''
-      this.results = null
-      if (url) this.$router.push(url)
-    },
-  },
-}
-</script>
 
 <style scoped>
 .rapiddev-layout { display: flex; min-height: 100vh; }

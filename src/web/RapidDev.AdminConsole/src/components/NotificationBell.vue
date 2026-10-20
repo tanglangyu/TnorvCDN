@@ -72,6 +72,22 @@ onUnmounted(() => {
   unsub?.()
   document.removeEventListener('click', closeOnOutside)
 })
+
+// dark mode detection (merge: the standalone <script> block has no component instance, causing Vue onMounted warning)
+const darkQuery = typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null
+const isDark = ref(darkQuery?.matches ?? false)
+if (darkQuery) {
+  darkQuery.addEventListener('change', (e) => { isDark.value = e.matches })
+}
+// also check Tabler theme attribute
+onMounted(() => {
+  const observer = new MutationObserver(() => {
+    isDark.value = document.documentElement.classList.contains('dark')
+  })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  isDark.value = document.documentElement.classList.contains('dark')
+})
+
 </script>
 
 <template>
@@ -121,22 +137,6 @@ onUnmounted(() => {
   </div>
 </template>
 
-<script lang="ts">
-// dark mode detection
-const darkQuery = typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null
-const isDark = ref(darkQuery?.matches ?? false)
-if (darkQuery) {
-  darkQuery.addEventListener('change', (e) => { isDark.value = e.matches })
-}
-// also check Tabler theme attribute
-onMounted(() => {
-  const observer = new MutationObserver(() => {
-    isDark.value = document.documentElement.classList.contains('dark')
-  })
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-  isDark.value = document.documentElement.classList.contains('dark')
-})
-</script>
 
 <style scoped>
 .bell-btn {

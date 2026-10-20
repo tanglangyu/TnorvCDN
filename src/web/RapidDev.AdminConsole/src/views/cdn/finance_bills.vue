@@ -23,6 +23,17 @@ const loadData = async () => {
   return rows.value
 }
 
+// 合计行 (merge: 原 Options API methods 块, 转为 setup 函数)
+function summary(param: any) {
+  const { columns, data } = param
+  return columns.map((col: any, i: number) => {
+    if (i === 0) return '合计'
+    if (col.property === 'requests') return data.reduce((a: number, r: any) => a + Number(r.requests || 0), 0).toLocaleString()
+    if (col.label === '月流量') return (data.reduce((a: number, r: any) => a + Number(r.trafficMB || 0), 0) / 1024).toFixed(2) + ' GB'
+    if (col.label === '超额费用') return '¥' + (data.reduce((a: number, r: any) => a + Number(r.overCents || 0), 0) / 100).toFixed(2)
+    return ''
+  })
+}
 const money = (cents: any) => `¥${(Number(cents || 0) / 100).toFixed(2)}`
 const gb = (mb: any) => (Number(mb || 0) / 1024).toFixed(2) + ' GB'
 
@@ -96,20 +107,3 @@ function pickMonth(d: any) {
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  methods: {
-    // 合计行
-    summary(param: any) {
-      const { columns, data } = param
-      return columns.map((col: any, i: number) => {
-        if (i === 0) return '合计'
-        if (col.property === 'requests') return data.reduce((a: number, r: any) => a + Number(r.requests || 0), 0).toLocaleString()
-        if (col.label === '月流量') return (data.reduce((a: number, r: any) => a + Number(r.trafficMB || 0), 0) / 1024).toFixed(2) + ' GB'
-        if (col.label === '超额费用') return '¥' + (data.reduce((a: number, r: any) => a + Number(r.overCents || 0), 0) / 100).toFixed(2)
-        return ''
-      })
-    },
-  },
-}
-</script>
