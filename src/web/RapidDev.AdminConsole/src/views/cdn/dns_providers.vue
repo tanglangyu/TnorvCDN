@@ -100,7 +100,7 @@ async function verify() {
               </el-select>
             </el-form-item>
             <el-form-item label="默认主域名ID">
-              <el-input v-model="form.defaultDomainId" placeholder="如聚合DNS qinyuan.cc 的域名 ID（29）" style="width: 300px" />
+              <el-input v-model="form.defaultDomainId" placeholder="如聚合DNS主域名的 ID" style="width: 300px" />
               <span class="text-muted small ms-3">网站 CNAME 与集群 A 记录都建在这个主域名下</span>
             </el-form-item>
           </el-form>
