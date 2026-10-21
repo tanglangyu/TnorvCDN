@@ -274,20 +274,16 @@ using (var scope = app.Services.CreateScope())
         app.Logger.LogInformation("已初始化内置站点配置模板");
     }
 
-    if (!db.Users.Any())
+    if (!db.Clusters.Any())
     {
-        db.Users.Add(new User
-        {
-            Username = "admin",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
-            IsAdmin = true
-        });
         db.Clusters.Add(new Cluster { Name = "默认集群" });
         db.SaveChanges();
-        app.Logger.LogInformation("已初始化默认管理员 admin/admin123 与默认集群（生产环境务必修改密码）");
+        app.Logger.LogInformation("已初始化默认集群");
     }
+    // 管理员账号不再自动创建：全新系统首次打开控制台会进入安装引导（/setup）设置管理员账号
 }
 
+app.MapSetupEndpoints();
 app.MapAdminEndpoints();
 app.MapNodeApiEndpoints();
 app.MapRapidDevAuth();

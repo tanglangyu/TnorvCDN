@@ -1,0 +1,57 @@
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using TnorvCdn.Api.Core;
+using TnorvCdn.Api.Data;
+
+namespace TnorvCdn.Api.Endpoints;
+
+/// <summary>
+/// 首次安装引导：全新系统（库中无任何用户）时开放，引导设置管理员账号。
+///   GET  /api/setup/status   → { needed }  库中无用户即需要初始化
+///   POST /api/setup/complete → 创建管理员账号；一旦存在任意用户，本接口永久 403
+/// 默认集群由启动逻辑保证存在，这里只负责管理员账号。
+/// </summary>
+public static class SetupEndpoints
+{
+    public static void MapSetupEndpoints(this WebApplication app)
+    {
+        var setup = app.MapGroup("/api/setup");
+
+        setup.MapGet("/status", async (CdnDbContext db) =>
+        {
+            var needed = !await db.Users.AnyAsync();
+            return Results.Json(new
+            {
+                code = 200,
+                message = "操作成功",
+                data = new { needed },
+            });
+        });
+
+        setup.MapPost("/complete", async (SetupInput input, CdnDbContext db) =>
+        {
+            // 安全边界：仅允许在全新系统（无任何用户）时执行，防止越权重置管理员
+            if (await db.Users.AnyAsync())
+                return Results.Json(new { code = 403, message = "系统已初始化，无法重复执行安装引导", data = (object?)null });
+
+            var username = (input.Username ?? "").Trim();
+            var password = input.Password ?? "";
+            if (username.Length < 3 || username.Length > 32 || !Regex.IsMatch(username, @"^[a-zA-Z0-9_一-龥]+$"))
+                return Results.Json(new { code = 400, message = "用户名需 3-32 位，仅限字母/数字/下划线/中文", data = (object?)null });
+            if (password.Length < 8 || password.Length > 64)
+                return Results.Json(new { code = 400, message = "密码长度需 8-64 位", data = (object?)null });
+
+            db.Users.Add(new User
+            {
+                Username = username,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                IsAdmin = true,
+            });
+            await db.SaveChangesAsync();
+            app.Logger.LogInformation("安装引导完成：已创建管理员 {Username}", username);
+            return Results.Json(new { code = 200, message = "初始化完成", data = new { ok = true } });
+        });
+    }
+
+    public sealed record SetupInput(string? Username, string? Password);
+}

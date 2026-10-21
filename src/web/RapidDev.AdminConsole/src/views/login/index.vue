@@ -18,7 +18,7 @@ const siteStore = useSiteStore()
 type LoginType = 'password' | 'phone'
 const loginType = ref<LoginType>('password')
 
-const pwdForm = reactive({ userName: 'admin', password: 'admin123' })
+const pwdForm = reactive({ userName: '', password: '' })
 const phoneForm = reactive({ phone: '', smsCode: '', countryCode: '0086' })
 // 国别选项：暂只开放 0086，其余置灰占位
 const countryOptions = [
@@ -210,7 +210,6 @@ onUnmounted(() => { if (smsTimer) clearInterval(smsTimer) })
         </el-form>
       </el-card>
 
-      <div class="login-foot text-muted">默认账号 <strong>admin</strong> / 密码 <strong>admin123</strong></div>
       <div class="login-foot text-muted login-beian">
         <template v-if="siteInfo.icp || siteInfo.psb">
           <a v-if="siteInfo.icp" href="https://beian.miit.gov.cn" target="_blank" rel="noopener" class="text-muted text-decoration-none">{{ siteInfo.icp }}</a>

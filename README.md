@@ -20,9 +20,9 @@ Akari是可爱的Akari，请给Akari按小星星（Star）
 
 ## 界面预览
 
-| 登录 | 管理端 · 数据看板 |
+| 登录 | 首次安装引导 · 环境检测 |
 |---|---|
-| ![登录](assets/login.png) | ![管理端数据看板](assets/admin-dashboard.png) |
+| ![登录](assets/login.png) | ![安装引导](assets/setup-step1.png) |
 
 | 管理端 · 网站列表 | 管理端 · 集群与边缘节点 |
 |---|---|
@@ -67,7 +67,8 @@ dotnet publish src/server/TnorvCdn.Api -c Release -o publish
 ASPNETCORE_URLS=http://0.0.0.0:8080 dotnet publish/TnorvCdn.Api.dll
 ```
 
-首次启动自动建表，并初始化默认管理员 `admin / admin123` 与默认集群 —— **上线前务必修改密码**。
+首次启动自动建表并初始化「默认集群」。打开管理端会自动进入**首次安装引导**（环境检测 → 设置管理员账号 → 完成），
+不再内置默认账号。
 
 管理 API：`http://<主控>:8080/api/*`；节点通信：`/grpc/register`、`/grpc/config`、`/grpc/heartbeat`、`/grpc/logs`。
 

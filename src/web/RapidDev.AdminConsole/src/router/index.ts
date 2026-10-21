@@ -21,6 +21,12 @@ export const staticRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/error/404.vue'),
     meta: { title: '404', hidden: true },
   },
+  {
+    path: '/setup',
+    name: 'Setup',
+    component: () => import('@/views/setup/index.vue'),
+    meta: { title: '安装引导', hidden: true },
+  },
 ]
 
 // 所有后台页面统一挂载在同一个 Layout 下,确保侧边栏状态全局一致
@@ -146,7 +152,21 @@ const router = createRouter({
 })
 
 // 全局前置守卫
-const whiteList = ['/login', '/404']
+const whiteList = ['/login', '/404', '/setup']
+
+// 首次安装引导状态缓存：GET /api/setup/status（库中无任何用户 = 需要初始化）。
+// 完成初始化后由安装页调用 markSetupDone() 失效；异常时按"已初始化"处理（fail-open 到登录页）。
+import { http } from '@/utils/request'
+let setupNeeded: boolean | null = null
+async function fetchSetupNeeded(): Promise<boolean> {
+  if (setupNeeded !== null) return setupNeeded
+  try {
+    const r: any = await http.get('/setup/status')
+    setupNeeded = !!r?.data?.needed
+  } catch { setupNeeded = false }
+  return setupNeeded
+}
+export function markSetupDone() { setupNeeded = false }
 
 	router.beforeEach(async (to, _from, next) => {
   NProgress.start()
@@ -201,6 +221,10 @@ const whiteList = ['/login', '/404']
       next()
     }
   } else {
+    // 首次安装引导：全新系统（无任何用户）时把所有未登录访问引导到 /setup
+    const needed = await fetchSetupNeeded()
+    if (needed && to.path !== '/setup') { next('/setup'); return }
+    if (!needed && to.path === '/setup') { next('/login'); return }
     if (whiteList.includes(to.path)) {
       next()
     } else {
