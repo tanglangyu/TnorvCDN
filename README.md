@@ -5,6 +5,8 @@
 由 [图诺弗](https://www.tunuofu.com/) 开源维护。如需商业短信 / 语音服务，欢迎了解
 [图诺弗通信](https://sms.tnorv.com/)（全球短信、全球语音）。
 
+♥本项目是一个大学生创新创业项目，可以通过tanglangyu@stu.shzu.edu.cn验证归属♥
+
 ## 功能总览
 
 - **网站加速**：缓存规则（扩展名/路径/首页/全站）、浏览器端 TTL、回源合并（singleflight）、边缘缓存共享（P2P 拉取）、stale-if-error 兜底、URL/目录/全部缓存刷新
@@ -84,12 +86,12 @@ npm run build   # 生产构建（dist 交由主控静态托管或任意 Web 服�
 
 开源版所有凭据均为占位符，部署时必须替换：
 
-| 位置 | 占位符 |
-|---|---|
+| 位置                                 | 占位符               |
+| ------------------------------------ | -------------------- |
 | `appsettings.json` ConnectionStrings | `<YOUR_DB_PASSWORD>` |
-| `appsettings.json` Jwt:Key | `<CHANGE-ME-...>` |
-| `appsettings.json` Dns.Providers.* | 空字符串（自行填写） |
-| 节点 `masterUrl` / `installToken` | 运行时传入 |
+| `appsettings.json` Jwt:Key           | `<CHANGE-ME-...>`    |
+| `appsettings.json` Dns.Providers.*   | 空字符串（自行填写） |
+| 节点 `masterUrl` / `installToken`    | 运行时传入           |
 
 ## 图诺弗通信 · 全球短信 / 全球语音
 
