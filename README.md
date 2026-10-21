@@ -5,7 +5,8 @@
 由 [图诺弗](https://www.tunuofu.com/) 开源维护。如需商业短信 / 语音服务，欢迎了解
 [图诺弗通信](https://sms.tnorv.com/)（全球短信、全球语音）。
 
-♥本项目是一个大学生创新创业项目，可以通过tanglangyu@stu.shzu.edu.cn验证归属♥
+Akari是可爱的Akari，请给Akari按小星星（Star）
+联系邮箱：tanglangyu@stu.shzu.edu.cn
 
 ## 功能总览
 
