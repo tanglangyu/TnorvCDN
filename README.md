@@ -17,6 +17,28 @@
 - **运营能力**：多集群（边缘/L2 分层）、节点注册与自升级、套餐与功能矩阵（PlanGate）、流量月结与超额封禁、自定义错误页（404/502/封禁页）、日志与统计（请求/流量/命中率/状态码/地区/排行）
 - **用户体系**：用户名/手机号登录、短信验证码（Tnorv SMS 网关协议或自对接）、管理员/普通用户双控制台
 
+## 界面预览
+
+| 登录 | 管理端 · 数据看板 |
+|---|---|
+| ![登录](assets/login.png) | ![管理端数据看板](assets/admin-dashboard.png) |
+
+| 管理端 · 网站列表 | 管理端 · 集群与边缘节点 |
+|---|---|
+| ![管理端网站列表](assets/admin-servers.png) | ![集群列表](assets/admin-clusters.png) |
+
+| 管理端 · 财务统计 | 用户端 · 概览 |
+|---|---|
+| ![财务统计](assets/admin-finance.png) | ![用户端概览](assets/user-dashboard.png) |
+
+| 用户端 · 我的网站 | 用户端 · 站点设置（27 个配置模块） |
+|---|---|
+| ![我的网站](assets/user-servers.png) | ![站点设置](assets/user-site-config.png) |
+
+| 用户端 · 套餐与购买 | |
+|---|---|
+| ![套餐管理](assets/user-plans.png) | |
+
 ## 目录结构
 
 ```
@@ -29,6 +51,8 @@ proto/tnorv.proto          主控↔节点协议定义
 ```
 
 ## 快速开始
+
+> 完整的部署与使用文档（nginx 同源反代、节点接入、证书、缓存/WAF 配置、FAQ）见 **[USAGE.md](USAGE.md)**。
 
 ### 1. 主控（.NET 10）
 
