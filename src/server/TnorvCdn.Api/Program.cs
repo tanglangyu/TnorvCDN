@@ -275,7 +275,7 @@ using (var scope = app.Services.CreateScope())
             {
                 Name = "高安全模式", BuiltIn = true,
                 Description = "强制HTTPS + 5秒盾 + URL防盗链 + CC高防，适合被攻击站点",
-                ConfigJson = """{"sslMode":"auto","forceHttps":true,"cache":{"enabled":true,"rules":[{"ext":["jpg","png","css","js"],"ttl":86400}]},"security":{"cc":{"enabled":true,"threshold":60,"windowSeconds":60,"banSeconds":600,"excludePaths":[]},"jsShield":{"enabled":true,"mode":"js","cookieSeconds":1800,"maxFails":2,"banSeconds":3600,"excludePaths":["/api/"]},"urlAuth":{"enabled":true,"type":"a","key":"{urlAuthKey},"uaRules":[],"ipWhitelist":[],"ipBlacklist":[],"deniedCountries":[],"deniedCidrs":[]}}""".Replace("__URLAUTH_KEY__", urlAuthKey),
+                ConfigJson = """{"sslMode":"auto","forceHttps":true,"cache":{"enabled":true,"rules":[{"ext":["jpg","png","css","js"],"ttl":86400}]},"security":{"cc":{"enabled":true,"threshold":60,"windowSeconds":60,"banSeconds":600,"excludePaths":[]},"jsShield":{"enabled":true,"mode":"js","cookieSeconds":1800,"maxFails":2,"banSeconds":3600,"excludePaths":["/api/"]},"urlAuth":{"enabled":true,"type":"a","key":"__URLAUTH_KEY__","uaRules":[],"ipWhitelist":[],"ipBlacklist":[],"deniedCountries":[],"deniedCidrs":[]}}""".Replace("__URLAUTH_KEY__", urlAuthKey),
             });
         db.SaveChanges();
         app.Logger.LogInformation("已初始化内置站点配置模板");
