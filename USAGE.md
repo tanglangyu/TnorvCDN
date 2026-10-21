@@ -62,7 +62,7 @@ GRANT ALL PRIVILEGES ON DATABASE tnorv TO tnorv;
 | 配置项 | 说明 |
 |---|---|
 | `ConnectionStrings:Default` | PostgreSQL 连接串，替换 `<YOUR_DB_PASSWORD>` |
-| `Jwt:Key` | JWT 签名密钥，**必须**替换为 ≥32 字节随机串（如 `openssl rand -base64 48` 生成） |
+| `Jwt:Key` | JWT 签名密钥。**留空或保留占位符时，首次启动自动生成 48 字节强随机密钥**并持久化到应用目录 `appsettings.Generated.json`（0600 权限），重启保持不变；多实例部署请显式配置相同密钥 |
 | `Dns:Enabled` | 仅作首次启动种子：是否随启动把该节迁移入 DnsSettings 表（此后以数据库/管理端为准） |
 | `Dns:Provider` | `aggregated` / `aliyun` / `dnspod` / `huawei` / `cloudflare` |
 | `Dns:DefaultDomainId` | DNS 服务商处主域名 ID（CNAME 与集群 A 记录建在其下） |
@@ -295,7 +295,7 @@ curl -s http://127.0.0.1:8081/health
 ## 13. 安全清单（上线前）
 
 - [ ] 安装引导中已设置自定义管理员账号与强密码（系统不内置默认账号）
-- [ ] 替换 `Jwt:Key` 为随机 ≥32 字节
+- [ ] `Jwt:Key` 已自动生成（或显式配置）；多实例部署各实例使用相同密钥
 - [ ] 数据库使用强密码；主控 8080 仅监听内网或置于 nginx 之后
 - [ ] 节点 `configs/tnorv-node.json` 权限 0600（程序默认即为 0600）
 - [ ] 防火墙：仅放行业务端口（80/443），节点本地管理端口绑定 127.0.0.1

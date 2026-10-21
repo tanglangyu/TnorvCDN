@@ -5,3 +5,4 @@ bin/
 *.tsbuildinfo
 TnorvCdn.Api.http
 .vite/
+appsettings.Generated.json

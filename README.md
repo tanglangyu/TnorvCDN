@@ -61,7 +61,7 @@ proto/tnorv.proto          主控↔节点协议定义
 # 安装 PostgreSQL 与 ASP.NET Core Runtime 10.0
 # 修改 src/server/TnorvCdn.Api/appsettings.json：
 #   ConnectionStrings:Default —— 数据库连接（Password 占位符请替换）
-#   Jwt:Key —— 换成你自己的 ≥32 字节随机密钥
+#   Jwt:Key —— 留空或占位符时首次启动自动生成强随机密钥（多实例部署请显式配置相同密钥）
 #   Dns —— 可选：首次启动一次性种子入 DnsSettings 表（之后在管理端「DNS服务商」页配置，保存即生效）
 dotnet publish src/server/TnorvCdn.Api -c Release -o publish
 ASPNETCORE_URLS=http://0.0.0.0:8080 dotnet publish/TnorvCdn.Api.dll
@@ -115,7 +115,7 @@ npm run build   # 生产构建（dist 交由主控静态托管或任意 Web 服�
 | 位置                                 | 占位符               |
 | ------------------------------------ | -------------------- |
 | `appsettings.json` ConnectionStrings | `<YOUR_DB_PASSWORD>` |
-| `appsettings.json` Jwt:Key           | `<CHANGE-ME-...>`    |
+| `appsettings.json` Jwt:Key           | 留空/占位符 → 启动自动生成随机密钥 |
 | `appsettings.json` Dns.Providers.*   | 空字符串（自行填写） |
 | 节点 `masterUrl` / `installToken`    | 运行时传入           |
 

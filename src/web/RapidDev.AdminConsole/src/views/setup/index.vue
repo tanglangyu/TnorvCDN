@@ -12,6 +12,7 @@ const step = ref(0)
 const needed = ref(false)
 const dbOk = ref(false)
 const clusterOk = ref(true) // 默认集群由启动逻辑保证
+const jwtAuto = ref(false)
 const checking = ref(true)
 const form = ref({ username: '', password: '', confirm: '' })
 const submitting = ref(false)
@@ -21,6 +22,7 @@ onMounted(async () => {
   try {
     const r: any = await http.get('/setup/status')
     needed.value = !!(r?.data?.needed ?? r?.needed)
+    jwtAuto.value = !!(r?.jwtKeyAuto ?? r?.data?.jwtKeyAuto)
     dbOk.value = true
     if (!needed.value) router.replace('/login')
   } catch {
@@ -64,6 +66,7 @@ const goLogin = () => router.replace('/login')
         <div class="check-row"><span>数据库连接</span><el-tag :type="dbOk ? 'success' : 'danger'" size="small">{{ dbOk ? '正常' : '失败' }}</el-tag></div>
         <div class="check-row"><span>默认集群</span><el-tag :type="clusterOk ? 'success' : 'danger'" size="small">{{ clusterOk ? '已就绪（默认集群）' : '未就绪' }}</el-tag></div>
         <div class="check-row"><span>初始化状态</span><el-tag :type="needed ? 'warning' : 'info'" size="small">{{ needed ? '待初始化（尚无管理员账号）' : '已完成' }}</el-tag></div>
+        <div class="check-row"><span>JWT 签名密钥</span><el-tag :type="'success'" size="small">{{ jwtAuto ? '已自动生成（持久化 appsettings.Generated.json）' : '已使用配置文件密钥' }}</el-tag></div>
         <el-button type="primary" class="w-100 mt-4" size="large" :disabled="!dbOk || !needed" @click="step = 1">开始配置</el-button>
       </div>
 
