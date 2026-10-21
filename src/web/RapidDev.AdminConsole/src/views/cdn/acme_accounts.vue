@@ -28,7 +28,7 @@ const form = ref<any>({})
 const loadData = async () => { rows.value = await cdnApi.get('/admin/acme-accounts'); return rows.value }
 
 function openAdd() {
-  form.value = { name: '', emailTemplate: 'u{userId}.tnorvcdnssl@deathin.icu', defaultEmail: '', enabled: true, note: '',
+  form.value = { name: '', emailTemplate: 'u{userId}.acme@example.com', defaultEmail: '', enabled: true, note: '',
     provider: 'letsencrypt', directoryUrl: '', backupDirectoryUrl: '', eabKid: '', eabHmacKey: '' }
   dialog.value = true
 }
@@ -75,7 +75,7 @@ const emailPreview = (row: any) => {
             <el-button size="small" @click="refresh()">刷新</el-button>
           </div>
           <el-alert type="info" :closable="false" class="mb-3"
-            title="一个邮箱注册的 ACME 账户签发证书过多时可能被 Let's Encrypt 限流。使用邮箱模板（如 u{userId}.tnorvcdnssl@deathin.icu）可按用户派生独立邮箱分散签发账户。邮箱变更后节点会重建 ACME 账户。"
+            title="一个邮箱注册的 ACME 账户签发证书过多时可能被 Let's Encrypt 限流。使用邮箱模板（如 u{userId}.acme@example.com）可按用户派生独立邮箱分散签发账户。邮箱变更后节点会重建 ACME 账户。"
             show-icon />
           <el-table :data="viewRows" stripe>
             <el-table-column prop="id" label="ID" width="60" />
@@ -115,7 +115,7 @@ const emailPreview = (row: any) => {
           <el-form label-width="110px">
             <el-form-item label="账户名"><el-input v-model="form.name" placeholder="如 主签发账户" /></el-form-item>
             <el-form-item label="邮箱模板">
-              <el-input v-model="form.emailTemplate" placeholder="u{userId}.tnorvcdnssl@deathin.icu" />
+              <el-input v-model="form.emailTemplate" placeholder="u{userId}.acme@example.com" />
               <div class="text-muted small mt-1">支持占位符 {userId}（网站所属用户）、{serverId}（节点 ID）；留空则使用固定邮箱</div>
             </el-form-item>
             <el-form-item label="固定邮箱">

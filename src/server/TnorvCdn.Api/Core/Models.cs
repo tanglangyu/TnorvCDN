@@ -849,7 +849,7 @@ public static class SmsEvents
 
 /// <summary>ACME 证书签发账户（运营配置，管理员可编辑，存数据库）。
 /// 邮箱是 ACME 账户唯一标识：单邮箱注册账户过多时 Let's Encrypt 可能限流签发失败，
-/// 因此支持按用户/站点拼接派生邮箱（如 u{userId}.tnorvcdnssl@deathin.icu）分散账户。</summary>
+/// 因此支持按用户/站点拼接派生邮箱（如 u{userId}.acme@example.com）分散账户。</summary>
 public class AcmeAccount
 {
     public long Id { get; set; }
