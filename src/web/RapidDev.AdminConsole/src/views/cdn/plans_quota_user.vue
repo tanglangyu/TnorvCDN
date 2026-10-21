@@ -11,14 +11,14 @@ const dialog = ref(false)
 const form = ref<any>({})
 const apiUrl = '/admin/subscriptions'
 
-const enabledFilter = ref<boolean | undefined>(undefined)
+const enabledFilter = ref<string>('') // ''=全部 / 'true' / 'false'（避免 el-radio-button value=undefined|null 触发 EP label 模式弃用警告）
 const pager = ref({ page: 1, pageSize: 20, total: 0 })
 
 const loadData = async () => {
   const data = await cdnApi.get(apiUrl, {
     page: pager.value.page,
     pageSize: pager.value.pageSize,
-    enabled: enabledFilter.value,
+    enabled: enabledFilter.value ?? undefined,
   })
   rows.value = normalize(data)
   if (data && typeof data === 'object' && !Array.isArray(data) && 'total' in data) {
@@ -70,9 +70,9 @@ function fmtVal(row: any, col: any) {
             
             <el-button size="small" @click="refresh()">刷新</el-button>
             <el-radio-group v-model="enabledFilter" size="small" @change="() => { pager.page = 1; gate?.refresh?.() }">
-              <el-radio-button :value="undefined">全部</el-radio-button>
-              <el-radio-button :value="true">启用中</el-radio-button>
-              <el-radio-button :value="false">已停用</el-radio-button>
+              <el-radio-button value="">全部</el-radio-button>
+              <el-radio-button value="true">启用中</el-radio-button>
+              <el-radio-button value="false">已停用</el-radio-button>
             </el-radio-group>
           </div>
           <el-table :data="rows" stripe>
