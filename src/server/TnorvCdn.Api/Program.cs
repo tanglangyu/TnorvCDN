@@ -246,6 +246,8 @@ using (var scope = app.Services.CreateScope())
             """;
         await cmd.ExecuteNonQueryAsync();
     }
+    // DNS 配置只存数据库：首次启动把 appsettings.json 的 Dns 节一次性迁移入 DnsSettings 表
+    await scope.ServiceProvider.GetRequiredService<DnsSettingsService>().SeedFromConfigIfMissingAsync();
     // 内置站点配置模板（一键应用：HTTPS/缓存/安全预设），幂等
     if (!db.SiteConfigTemplates.Any(t => t.BuiltIn))
     {

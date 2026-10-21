@@ -1407,15 +1407,8 @@ public static class AdminEndpoints
             var row = await db.DnsSettings.FindAsync(1L);
             if (row == null)
             {
-                // 首次访问：从 appsettings.json 迁移种子行（一次性）
-                row = new DnsSettings
-                {
-                    Id = 1,
-                    Enabled = settings.Enabled,
-                    Provider = settings.Provider,
-                    DefaultDomainId = settings.DefaultDomainId ?? "",
-                    ProvidersJson = "{}",
-                };
+                // 兜底：启动种子未覆盖到时（历史库），建立空白默认行 —— 配置只存数据库，不读文件
+                row = new DnsSettings { Id = 1, Enabled = false, Provider = "aggregated", ProvidersJson = "{}" };
                 db.DnsSettings.Add(row);
                 await db.SaveChangesAsync();
             }

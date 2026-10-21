@@ -62,7 +62,7 @@ proto/tnorv.proto          主控↔节点协议定义
 # 修改 src/server/TnorvCdn.Api/appsettings.json：
 #   ConnectionStrings:Default —— 数据库连接（Password 占位符请替换）
 #   Jwt:Key —— 换成你自己的 ≥32 字节随机密钥
-#   Dns —— 按需配置解析商（不使用可留 Enabled=false）
+#   Dns —— 可选：首次启动一次性种子入 DnsSettings 表（之后在管理端「DNS服务商」页配置，保存即生效）
 dotnet publish src/server/TnorvCdn.Api -c Release -o publish
 ASPNETCORE_URLS=http://0.0.0.0:8080 dotnet publish/TnorvCdn.Api.dll
 ```

@@ -7,9 +7,9 @@ using TnorvCdn.Api.Data;
 namespace TnorvCdn.Api.Services;
 
 /// <summary>
-/// DNS 三方接入配置读取服务（存 DnsSettings 表，管理员经 /admin/dns/settings 可编辑）。
-/// appsettings.json 的 Dns 节作为兜底（未在库中配置过的字段回落到文件值，平滑迁移）。
-/// 内存缓存 30s 或更新即失效，避免每次解析都查库。
+/// DNS 三方接入配置服务：配置只存 DnsSettings 表（Id=1 单行），管理员经 /admin/dns/settings 编辑，保存即生效。
+/// appsettings.json 的 Dns 节仅作为首次启动的一次性种子（SeedFromConfigIfMissingAsync），
+/// 迁移入库后运行时不再读取文件。内存缓存 30s 或更新即失效，避免每次解析都查库。
 /// </summary>
 public class DnsSettingsService
 {
@@ -26,9 +26,8 @@ public class DnsSettingsService
     };
 
     private readonly IServiceScopeFactory _scopes;
-    private readonly IConfiguration _cfg;
+    private readonly IConfiguration _cfg;   // 仅启动种子迁移使用
     private readonly ILogger<DnsSettingsService> _logger;
-    private readonly ConcurrentDictionary<string, byte> _invalidate = new();
     private (DnsSettings? Value, DateTime LoadedAt) _cache;
     private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(30);
 
@@ -38,7 +37,49 @@ public class DnsSettingsService
     /// <summary>使缓存失效（管理端保存后调用，立即生效）。</summary>
     public void Invalidate() => _cache = default;
 
-    /// <summary>读取当前配置（库优先，无行时返回 null 由调用方走文件兜底）。</summary>
+    /// <summary>
+    /// 启动时调用：DnsSettings 表无 Id=1 行时，把 appsettings.json 的 Dns 节一次性迁移入库。
+    /// 此后配置的唯一来源是数据库，运行时不再读文件。
+    /// </summary>
+    public async Task SeedFromConfigIfMissingAsync()
+    {
+        try
+        {
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<CdnDbContext>();
+            if (await db.DnsSettings.AnyAsync(s => s.Id == 1)) return;
+
+            var providers = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var (name, schema) in ProviderSchema)
+            {
+                var obj = new Dictionary<string, string>();
+                foreach (var k in schema.Keys.Concat(schema.SecretKeys))
+                {
+                    // appsettings 的 PascalCase 节（Dns:Providers:Aggregated:ApiBase）→ camelCase 键
+                    var v = _cfg[$"Dns:Providers:{Pascal(name)}:{Pascal(k)}"];
+                    if (!string.IsNullOrEmpty(v)) obj[k] = v;
+                }
+                providers[name] = obj;
+            }
+
+            db.DnsSettings.Add(new DnsSettings
+            {
+                Id = 1,
+                Enabled = (_cfg["Dns:Enabled"] ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase),
+                Provider = _cfg["Dns:Provider"] ?? "aggregated",
+                DefaultDomainId = _cfg["Dns:DefaultDomainId"] ?? "",
+                ProvidersJson = JsonSerializer.Serialize(providers),
+            });
+            await db.SaveChangesAsync();
+            _logger.LogInformation("已把 appsettings.json 的 Dns 配置一次性迁移入 DnsSettings 表（此后以数据库为准）");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("DNS 配置种子迁移失败（可在管理端「DNS服务商」页重新配置）: {Message}", ex.Message);
+        }
+    }
+
+    /// <summary>读取当前配置行（唯一来源：数据库；无行时返回 null，读取方走安全默认值）。</summary>
     public DnsSettings? Get()
     {
         var (cached, at) = _cache;
@@ -53,41 +94,35 @@ public class DnsSettingsService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("读取 DNS 配置失败（走文件兜底）: {Message}", ex.Message);
+            _logger.LogWarning("读取 DNS 配置失败: {Message}", ex.Message);
             return null;
         }
     }
 
-    // ---- 兜底合并读取：库值 ?? 文件值 ----
-    public bool Enabled => Get()?.Enabled
-        ?? (_cfg["Dns:Enabled"] ?? "true").Equals("true", StringComparison.OrdinalIgnoreCase);
+    // ---- 只读数据库（缺省：关闭/aggregated/空域名），不再回落 appsettings.json ----
+    public bool Enabled => Get()?.Enabled ?? false;
 
-    public string Provider => Get()?.Provider ?? _cfg["Dns:Provider"] ?? "aggregated";
+    public string Provider => Get()?.Provider ?? "aggregated";
 
-    public string? DefaultDomainId => string.IsNullOrEmpty(Get()?.DefaultDomainId)
-        ? _cfg["Dns:DefaultDomainId"] : Get()!.DefaultDomainId;
+    public string? DefaultDomainId => Get()?.DefaultDomainId;
 
-    /// <summary>读某厂商某凭证字段：DB ProvidersJson 优先，回落 appsettings.json。</summary>
+    /// <summary>读某厂商某凭证字段：仅从 DB ProvidersJson 读取，未配置返回 null。</summary>
     public string? Field(string provider, string field)
     {
         var row = Get();
-        if (!string.IsNullOrEmpty(row?.ProvidersJson))
+        if (string.IsNullOrEmpty(row?.ProvidersJson)) return null;
+        try
         {
-            try
+            using var doc = JsonDocument.Parse(row.ProvidersJson);
+            if (doc.RootElement.TryGetProperty(provider, out var p) &&
+                p.TryGetProperty(field, out var v) && v.ValueKind == JsonValueKind.String)
             {
-                using var doc = JsonDocument.Parse(row.ProvidersJson);
-                if (doc.RootElement.TryGetProperty(provider, out var p) &&
-                    p.TryGetProperty(field, out var v) && v.ValueKind == JsonValueKind.String)
-                {
-                    var s = v.GetString();
-                    if (!string.IsNullOrEmpty(s)) return s;
-                }
+                var s = v.GetString();
+                return string.IsNullOrEmpty(s) ? null : s;
             }
-            catch { /* ProvidersJson 损坏时走文件兜底 */ }
         }
-        // 文件路径映射：camelCase 字段 → appsettings 的 PascalCase 节（Dns:Providers:Aggregated:ApiBase）
-        var pascal = char.ToUpperInvariant(field[0]) + field[1..];
-        return _cfg[$"Dns:Providers:{Pascal(provider)}:{pascal}"];
+        catch { /* ProvidersJson 损坏时按未配置处理 */ }
+        return null;
     }
 
     private static string Pascal(string s) => char.ToUpperInvariant(s[0]) + s[1..];

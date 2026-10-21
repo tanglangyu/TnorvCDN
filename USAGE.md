@@ -63,7 +63,7 @@ GRANT ALL PRIVILEGES ON DATABASE tnorv TO tnorv;
 |---|---|
 | `ConnectionStrings:Default` | PostgreSQL 连接串，替换 `<YOUR_DB_PASSWORD>` |
 | `Jwt:Key` | JWT 签名密钥，**必须**替换为 ≥32 字节随机串（如 `openssl rand -base64 48` 生成） |
-| `Dns:Enabled` | 是否启用三方 DNS 自动同步（不用智能 DNS 保持 `false`） |
+| `Dns:Enabled` | 仅作首次启动种子：是否随启动把该节迁移入 DnsSettings 表（此后以数据库/管理端为准） |
 | `Dns:Provider` | `aggregated` / `aliyun` / `dnspod` / `huawei` / `cloudflare` |
 | `Dns:DefaultDomainId` | DNS 服务商处主域名 ID（CNAME 与集群 A 记录建在其下） |
 | `Dns:Providers.*` | 对应厂商的 API 凭证 |
@@ -240,7 +240,8 @@ curl -s http://127.0.0.1:8081/health
 
 启用三方 DNS 后，系统把网站 CNAME / 集群 A 记录自动同步到你的 DNS 服务商，并支持分线路（电信/联通/移动/境外等）解析到不同节点：
 
-1. 主控 `appsettings.json` 配置 `Dns` 节点并重启；或在管理端「DNS服务商」页直接填写凭证保存（存数据库，保存即生效）。
+1. DNS 配置**只存数据库**（DnsSettings 表，管理端「DNS服务商」页编辑，保存即生效）。
+   `appsettings.json` 的 `Dns` 节仅在首次启动（表中无配置行）时一次性迁移入库，之后修改文件不再生效，一切以管理端为准。
 2. 管理端「集群列表」为集群设置 DNS 子域名，「同步解析」可手动触发全量同步。
 3. 「解析测试」页向在线节点的内建权威 DNS（:53）发起真实 UDP 查询，验证分线路应答。
 4. NS 托管接入见第 7 节，适合把整个子域交给系统接管。
